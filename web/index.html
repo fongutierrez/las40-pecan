@@ -347,6 +347,14 @@ select{background:var(--card2);color:var(--text);border:1px solid var(--border);
       <h1>Monte</h1>
       <p>Mapa árbol por árbol · <span id="monte-status" style="color:var(--text3)">Cargando…</span></p>
     </div>
+    <!-- Control de temporada -->
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius)">
+      <span style="font-size:12px;color:var(--text2)" id="temporada-info">Temporada</span>
+      <button onclick="cerrarTemporada()" style="font-size:12px;padding:6px 12px;border-radius:var(--radius);border:1px solid var(--yellow);background:var(--yellow-dim);color:var(--yellow);cursor:pointer;font-weight:600">↺ Cerrar temporada / Reiniciar mapa</button>
+      <label style="font-size:12px;color:var(--text2);display:flex;align-items:center;gap:5px;cursor:pointer">
+        <input type="checkbox" id="ver-historico" onchange="toggleHistorico()"/> Ver histórico completo
+      </label>
+    </div>
     <!-- Layer selector -->
     <div id="monte-layers" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
     <!-- Zoom controls -->
@@ -526,6 +534,24 @@ async function sb(table, params = {}) {
   });
   if (!res.ok) throw new Error(`${table} ${res.status}`);
   return res.json();
+}
+
+// Escritura (PATCH para actualizar, POST con merge-duplicates para upsert)
+async function sbWrite(table, method, body, params = {}) {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString(), {
+    method,
+    headers:{
+      "apikey":SUPABASE_ANON_KEY,
+      "Authorization":`Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type":"application/json",
+      "Prefer":"return=representation,resolution=merge-duplicates"
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`${table} ${method} ${res.status}`);
+  return res.json().catch(()=>[]);
 }
 
 // ============================================================
@@ -862,9 +888,10 @@ async function renderClima(dias){
 let _maqService = [];
 
 async function loadMaquinaria(){
-  const [rows, svcRows] = await Promise.all([
+  const [rows, svcRows, herrRows] = await Promise.all([
     sb("registros_trabajo",{select:"created_at,campos",order:"created_at.desc",limit:"2000"}),
     sb("maquinaria_service",{select:"maquinaria,fecha_service,tipo_service,proximo_service,notas",order:"fecha_service.desc",limit:"200"}).catch(()=>[]),
+    sb("herramientas",{select:"nombre,estado,nota",order:"nombre.asc"}).catch(()=>[]),
   ]);
 
   _maqService = svcRows;
@@ -885,7 +912,10 @@ async function loadMaquinaria(){
   svcRows.forEach(s=>{ if(!lastSvc[s.maquinaria]) lastSvc[s.maquinaria]=s; });
 
   const maquinas=["cuatriciclo","tractor","shaker"];
-  const herramientas=["pala_1","pala_2","tijera_1","tijera_2","motosierra_1","motosierra_2","desmalezadora_1","desmalezadora_2","pulverizadora","sopladora"];
+  const herrFallback=["pala_1","pala_2","tijera_1","tijera_2","motosierra_1","motosierra_2","desmalezadora_1","desmalezadora_2","pulverizadora","sopladora"];
+  const herramientas = herrRows.length
+    ? herrRows.map(h=>({nombre:h.nombre, estado:h.estado}))
+    : herrFallback.map(n=>({nombre:n, estado:null}));
 
   const maqCard=(name)=>{
     const last=lastUso[name];
@@ -905,18 +935,38 @@ async function loadMaquinaria(){
     </div>`;
   };
 
-  const equipCard=(name)=>{
+  const equipCard=(h)=>{
+    const name=h.nombre;
     const last=lastUso[name];
     const dias=last?Math.floor((Date.now()-new Date(last))/86400000):null;
-    return `<div class="equip-card">
-      <div class="equip-name">${name.replace(/_/g," ")}</div>
+    const rota = h.estado==="rota";
+    const badge = h.estado
+      ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:${rota?'var(--red-dim)':'var(--green-dim)'};color:${rota?'var(--red)':'var(--green)'}">${rota?'ROTA':'ACTIVA'}</span>`
+      : "";
+    const btn = h.estado
+      ? `<button onclick="toggleHerramienta('${name}','${rota?'activa':'rota'}')" style="margin-top:8px;width:100%;font-size:11px;padding:5px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--card2);color:var(--text);cursor:pointer">${rota?'✓ Marcar activa':'⚠ Marcar rota'}</button>`
+      : "";
+    return `<div class="equip-card" style="${rota?'opacity:.7;border-color:var(--red)':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+        <div class="equip-name">${name.replace(/_/g," ")}</div>
+        ${badge}
+      </div>
       <div class="equip-last">${last?fmtD(last):"Sin registros"}</div>
       ${last?`<div class="equip-ago">${dias} <span>días atrás</span></div>`:""}
+      ${btn}
     </div>`;
   };
 
   document.getElementById("equip-maq").innerHTML = maquinas.map(maqCard).join("");
   document.getElementById("equip-herr").innerHTML = herramientas.map(equipCard).join("");
+}
+
+// Cambiar estado de una herramienta (activa ↔ rota) y refrescar
+async function toggleHerramienta(nombre, nuevoEstado){
+  try{
+    await sbWrite("herramientas","PATCH",{estado:nuevoEstado,updated_at:new Date().toISOString()},{nombre:`eq.${nombre}`});
+    await loadMaquinaria();
+  }catch(e){ alert("No se pudo cambiar el estado de "+nombre+": "+e.message); }
 }
 
 function openMaqPanel(maquinaria) {
@@ -1008,6 +1058,8 @@ let _mAct30     = new Map(); // arbol_id → actividad (last 30 days)
 let _mKg        = new Map(); // arbol_id → total kg cosechados
 let _mKgMax     = 1;
 let _mCurrentLayer = "variedad";
+let _mCorte        = null;   // fecha de corte de temporada (eventos anteriores no pintan el mapa)
+let _mVerHistorico = false;  // si true, ignora el corte y muestra todo
 
 const MONTE_LAYERS = [
   {id:"variedad",       label:"Variedad"},
@@ -1084,12 +1136,17 @@ function monteZoom(dir) {
 }
 
 async function loadMonte() {
-  // Fetch todos los eventos — incluye kg y fecha para capas
-  const events = await sb("eventos_arbol", {
-    select: "fila,columna,actividad,fecha,trabajador,observaciones,kg_nuez_cosechada",
-    order:  "fecha.desc",
-    limit:  "10000",
-  }).catch(() => []);
+  // Fetch eventos + fecha de corte de temporada en paralelo
+  const [events, cfg] = await Promise.all([
+    sb("eventos_arbol", {
+      select: "fila,columna,actividad,fecha,trabajador,observaciones,kg_nuez_cosechada",
+      order:  "fecha.desc",
+      limit:  "10000",
+    }).catch(() => []),
+    sb("app_config", { select:"clave,valor", clave:"eq.temporada_corte" }).catch(() => []),
+  ]);
+
+  _mCorte = (cfg && cfg[0] && cfg[0].valor) ? cfg[0].valor : null;
 
   const cutoff30 = isoDesde(30).slice(0,10);
   _mLastEvt = new Map();
@@ -1097,12 +1154,23 @@ async function loadMonte() {
   _mKg      = new Map();
 
   events.forEach(e => {
+    // Corte de temporada: si hay cierre y no estamos viendo histórico, los eventos
+    // anteriores al corte quedan en la base pero NO pintan el mapa.
+    if (_mCorte && !_mVerHistorico && e.fecha < _mCorte) return;
     const id = `${e.columna}-${e.fila}`;
     if (!_mLastEvt.has(id)) _mLastEvt.set(id, e);
     if (e.fecha >= cutoff30 && !_mAct30.has(id)) _mAct30.set(id, e.actividad);
     if (e.kg_nuez_cosechada) _mKg.set(id, (_mKg.get(id)??0) + e.kg_nuez_cosechada);
   });
   _mKgMax = Math.max(...[..._mKg.values()], 1);
+
+  // Actualizar el control de temporada
+  const tinfo = document.getElementById("temporada-info");
+  if (tinfo) tinfo.innerHTML = _mCorte
+    ? `Temporada desde <b style="color:var(--text)">${fmtD(_mCorte)}</b>`
+    : `Temporada completa`;
+  const vh = document.getElementById("ver-historico");
+  if (vh) vh.checked = _mVerHistorico;
 
   // Construir selector de capas (solo la primera vez)
   const layersEl = document.getElementById("monte-layers");
@@ -1155,6 +1223,24 @@ async function loadMonte() {
 
   document.getElementById("monte-status").textContent =
     `${_mLastEvt.size} árbol${_mLastEvt.size!==1?"es":""} con datos registrados`;
+}
+
+// Cierra la temporada: fija el corte en hoy. El mapa se reinicia (gris) pero el histórico queda en la base.
+async function cerrarTemporada(){
+  if(!confirm("¿Cerrar la temporada y reiniciar el mapa?\n\nEl mapa va a quedar en gris (sin actividad reciente), pero TODO lo hecho se conserva en la base. Lo podés volver a ver tildando 'Ver histórico completo'.")) return;
+  const hoy = new Date().toISOString().slice(0,10);
+  try{
+    await sbWrite("app_config","POST",{clave:"temporada_corte",valor:hoy,updated_at:new Date().toISOString()});
+    _mVerHistorico = false;
+    await loadMonte();
+    alert("Temporada cerrada. El mapa se reinició desde hoy ("+hoy+").");
+  }catch(e){ alert("No se pudo cerrar la temporada: "+e.message); }
+}
+
+// Alterna entre ver solo la temporada actual o todo el histórico
+function toggleHistorico(){
+  _mVerHistorico = document.getElementById("ver-historico").checked;
+  loadMonte();
 }
 
 function setMonteLayer(layerId) {
