@@ -253,6 +253,7 @@ select{background:var(--card2);color:var(--text);border:1px solid var(--border);
       <h1>Resumen</h1>
       <p>Vista general de operaciones · <span id="hoy"></span></p>
     </div>
+    <div id="reminders-r"></div>
     <div class="kpi-grid">
       <div class="kpi b"><div class="kpi-label">Registros esta semana</div><div class="kpi-val" id="k-semana">—</div><div class="kpi-sub">últimos 7 días</div></div>
       <div class="kpi g"><div class="kpi-label">Actividad más frecuente</div><div class="kpi-val" id="k-act" style="font-size:16px;padding-top:6px">—</div><div class="kpi-sub" id="k-act-sub"></div></div>
@@ -631,7 +632,7 @@ async function loadTab(tab){
 // ============================================================
 async function loadResumen(){
   const temporadaDesde = `${new Date().getFullYear()}-04-01`;
-  const [semana, todos, ultimos, sinClas, log30, kgRows, climo60] = await Promise.all([
+  const [semana, todos, ultimos, sinClas, log30, kgRows, climo60, prodComb, movs] = await Promise.all([
     sb("registros_trabajo",{select:"id,actividad",created_at:`gte.${isoDesde(7)}`,limit:"1000"}),
     sb("registros_trabajo",{select:"created_at",order:"created_at.desc",limit:"1"}),
     sb("registros_trabajo",{select:"created_at,actividad,confianza,campos",order:"created_at.desc",limit:"10"}),
@@ -639,6 +640,8 @@ async function loadResumen(){
     sb("registros_trabajo",{select:"actividad",created_at:`gte.${isoDesde(30)}`,limit:"2000"}),
     sb("eventos_arbol",{select:"kg_nuez_cosechada",fecha:`gte.${temporadaDesde}`,kg_nuez_cosechada:"not.is.null",limit:"50000"}).catch(()=>[]),
     sb("registros_trabajo",{select:"created_at,campos",created_at:`gte.${isoDesde(60)}`,limit:"5000"}).catch(()=>[]),
+    sb("productos",{select:"id,nombre,stock_actual,stock_minimo,categoria",categoria:"eq.combustible"}).catch(()=>[]),
+    sb("stock_movimientos",{select:"producto_id,created_at",order:"created_at.desc",limit:"500"}).catch(()=>[]),
   ]);
 
   // Parallel load of alerts separately
@@ -681,6 +684,27 @@ async function loadResumen(){
 
   // Climograma
   document.getElementById("chart-climo").innerHTML = climograma(climo60);
+
+  // ── Recordatorios proactivos (combustibles que se usan seguido y hace mucho no se cargan) ──
+  const DIAS_AVISO = 10;                       // umbral de días sin movimiento
+  const ultMov = {};                           // producto_id → fecha último movimiento
+  movs.forEach(m=>{ if(!ultMov[m.producto_id]) ultMov[m.producto_id]=m.created_at; });
+  const recordatorios = [];
+  prodComb.forEach(p=>{
+    const ult = ultMov[p.id];
+    const dias = ult ? Math.floor((Date.now()-new Date(ult))/86400000) : null;
+    if(dias===null){
+      recordatorios.push(`No hay cargas ni usos registrados de <b>${esc(p.nombre)}</b>. ¿Usan ${esc(p.nombre)}? Acordate de anotarlo cuando carguen o gasten.`);
+    } else if(dias>=DIAS_AVISO){
+      recordatorios.push(`Hace <b>${dias} días</b> que no se registra movimiento de <b>${esc(p.nombre)}</b> (quedan ${p.stock_actual} L). ¿Cargaron o usaron y no lo anotaron?`);
+    }
+  });
+  document.getElementById("reminders-r").innerHTML = recordatorios.length
+    ? `<div style="background:var(--yellow-dim);border:1px solid var(--yellow);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px">
+         <div style="font-size:12px;font-weight:700;color:var(--yellow);margin-bottom:8px;letter-spacing:.3px">⚠ RECORDATORIOS</div>
+         ${recordatorios.map(t=>`<div style="font-size:13px;color:var(--text);margin:4px 0;line-height:1.45">• ${t}</div>`).join("")}
+       </div>`
+    : "";
 }
 
 // ============================================================
