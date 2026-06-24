@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Las 40 · Nuez Pecan</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--sidebar:#161b22;--card:#1c2128;--card2:#21262d;
+  --border:#30363d;--border2:#3d444d;
+  --text:#e6edf3;--text2:#8b949e;--text3:#484f58;
+  --green:#3fb950;--green-dim:rgba(63,185,80,.12);
+  --blue:#58a6ff;--blue-dim:rgba(88,166,255,.12);
+  --yellow:#d29922;--yellow-dim:rgba(210,153,34,.12);
+  --red:#f85149;--red-dim:rgba(248,81,73,.12);
+  --purple:#bc8cff;--orange:#e3b341;
+  --radius:6px;--sidebar-w:220px;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+#sidebar{width:var(--sidebar-w);background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .2s}
+.sb-logo{padding:20px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sb-logo-icon{width:32px;height:32px;background:linear-gradient(135deg,#1a3d0a,#2d6a17);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo-text h2{font-size:15px;font-weight:700;color:var(--text);line-height:1.2}
+.sb-logo-text p{font-size:11px;color:var(--text2)}
+nav{flex:1;padding:10px 8px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:background .15s,color .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.nav-item.active{background:var(--green-dim);color:var(--green)}
+.nav-item svg{flex-shrink:0;opacity:.7}
+.nav-item.active svg{opacity:1}
+.sb-footer{padding:12px 12px 16px;border-top:1px solid var(--border)}
+#last-upd{font-size:11px;color:var(--text3);margin-bottom:4px}
+#auto-refresh-countdown{font-size:11px;color:var(--text3);margin-bottom:8px;opacity:.7}
+#refresh-btn{width:100%;background:var(--green);color:#000;border:none;border-radius:var(--radius);padding:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .15s}
+#refresh-btn:hover{opacity:.85}
+#refresh-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+#login-screen.hidden{display:none}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:40px 36px;width:340px;text-align:center}
+.login-logo{width:52px;height:52px;background:linear-gradient(135deg,#1a3d0a,#2d6a17);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.login-box h1{font-size:18px;font-weight:700;margin-bottom:4px}
+.login-box p{font-size:12px;color:var(--text2);margin-bottom:28px}
+.login-box input{width:100%;background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 14px;color:var(--text);font-size:14px;outline:none;margin-bottom:12px}
+.login-box input:focus{border-color:var(--green)}
+.login-box button{width:100%;background:var(--green);color:#000;border:none;border-radius:var(--radius);padding:10px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.login-box button:hover{opacity:.85}
+#login-error{color:var(--red);font-size:12px;margin-top:8px;min-height:16px}
+/* Botón cerrar sesión */
+#logout-btn{width:100%;background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--radius);padding:7px;font-size:12px;cursor:pointer;margin-top:8px;transition:color .15s,border-color .15s}
+#logout-btn:hover{color:var(--red);border-color:var(--red)}
+.spin{display:inline-block}
+.spinning{animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* MAIN */
+#main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;display:flex;flex-direction:column}
+.tab-panel{display:none;padding:28px 28px 48px;flex:1}
+.tab-panel.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.page-header{margin-bottom:24px}
+.page-header h1{font-size:20px;font-weight:700;color:var(--text)}
+.page-header p{font-size:13px;color:var(--text2);margin-top:2px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--text2);margin-bottom:14px}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:1300px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.g::after{background:var(--green)}.kpi.b::after{background:var(--blue)}
+.kpi.y::after{background:var(--yellow)}.kpi.r::after{background:var(--red)}
+.kpi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:8px}
+.kpi-val{font-size:28px;font-weight:700;line-height:1;margin-bottom:4px}
+.kpi.g .kpi-val{color:var(--green)}.kpi.b .kpi-val{color:var(--blue)}
+.kpi.y .kpi-val{color:var(--yellow)}.kpi.r .kpi-val{color:var(--red)}
+.kpi-sub{font-size:11px;color:var(--text3)}
+
+/* TWO-COL */
+.two-col{display:grid;grid-template-columns:1fr 320px;gap:14px;margin-bottom:20px}
+@media(max-width:1000px){.two-col{grid-template-columns:1fr}}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;white-space:nowrap}
+thead tr{background:var(--card2)}
+th{text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);padding:10px 12px;border-bottom:1px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:600}
+.b-g{background:var(--green-dim);color:var(--green)}
+.b-y{background:var(--yellow-dim);color:var(--yellow)}
+.b-r{background:var(--red-dim);color:var(--red)}
+.b-b{background:var(--blue-dim);color:var(--blue)}
+
+/* SKELETON */
+.sk{background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);background-size:200% 100%;animation:pulse 1.4s ease infinite;border-radius:var(--radius);height:14px}
+@keyframes pulse{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
+/* EMPTY STATE */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:10px;color:var(--text3)}
+.empty p{font-size:13px}
+
+/* FILTERS */
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+select{background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;font-size:13px;cursor:pointer}
+
+/* ALERT ITEMS */
+.alert-item{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--yellow);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px}
+.alert-tipo{font-size:13px;font-weight:600;color:var(--yellow)}
+.alert-id{font-size:11px;color:var(--text3);font-family:monospace;margin-top:2px}
+.alert-time{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* EQUIP CARDS */
+.equip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:20px}
+.equip-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.equip-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;text-transform:capitalize}
+.equip-last{font-size:11px;color:var(--text2)}
+.equip-ago{font-size:18px;font-weight:700;color:var(--blue);line-height:1;margin-top:4px}
+.equip-ago span{font-size:11px;font-weight:400;color:var(--text3)}
+
+/* MONTE */
+.zoom-btn{background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);width:28px;height:28px;cursor:pointer;font-size:17px;line-height:1;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.zoom-btn:hover{border-color:var(--green);color:var(--green)}
+.tree-cell{cursor:pointer;transition:opacity .1s}
+.tree-cell:hover{opacity:.65}
+#monte-map-area{overflow:auto;background:#0a0c10;border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+#monte-tooltip{position:fixed;background:#1c2128;border:1px solid var(--border2);border-radius:var(--radius);padding:9px 13px;font-size:12px;color:var(--text);pointer-events:none;z-index:999;display:none;max-width:240px;line-height:1.7;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+#tree-panel{width:320px;flex-shrink:0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);display:none;overflow:hidden}
+#tree-panel-body{padding:12px 16px;overflow-y:auto;max-height:calc(75vh - 52px)}
+.tree-evt{padding:10px 0;border-bottom:1px solid var(--border)}
+.tree-evt:last-child{border-bottom:none}
+
+/* CLIMATE GRID */
+.climate-kpi{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+
+/* LAYER BUTTONS */
+.layer-btn{background:var(--card2);color:var(--text2);border:1px solid var(--border);border-radius:var(--radius);padding:5px 11px;font-size:11px;font-weight:500;cursor:pointer;transition:background .15s,color .15s,border-color .15s;white-space:nowrap}
+.layer-btn:hover{border-color:var(--green);color:var(--text)}
+.layer-btn.active{background:var(--green-dim);color:var(--green);border-color:var(--green)}
+
+/* MODAL SERVICE */
+#maq-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.65);align-items:center;justify-content:center}
+#maq-modal.open{display:flex}
+.maq-modal-box{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);padding:24px;min-width:320px;max-width:540px;width:92%;max-height:82vh;overflow-y:auto}
+.maq-clickable:hover{border-color:var(--blue)!important;transform:translateY(-1px);transition:transform .15s}
+
+/* MOBILE SIDEBAR TOGGLE */
+#sb-toggle{display:none;position:fixed;top:12px;left:12px;z-index:200;background:var(--sidebar);border:1px solid var(--border);border-radius:var(--radius);width:36px;height:36px;align-items:center;justify-content:center;cursor:pointer;color:var(--text)}
+@media(max-width:900px){
+  #sb-toggle{display:flex}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:none}
+  #main{margin-left:0}
+  #overlay{display:block}
+}
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
+</style>
+</head>
+<body>
+
+<button id="sb-toggle" onclick="toggleSidebar()">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2"><path d="M12 22V12"/><path d="M12 12C12 7 7 4 4 6c0 4 3 7 8 6"/><path d="M12 12c0-5 5-8 8-6 0 4-3 7-8 6"/></svg>
+    </div>
+    <div class="sb-logo-text">
+      <h2>Las 40</h2>
+      <p>Nuez Pecan</p>
+    </div>
+  </div>
+
+  <nav>
+    <button class="nav-item active" onclick="goTab('resumen',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Resumen
+    </button>
+    <button class="nav-item" onclick="goTab('actividades',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Actividades
+    </button>
+    <button class="nav-item" onclick="goTab('clima',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 0 1 0 9z"/></svg>
+      Clima
+    </button>
+    <button class="nav-item" onclick="goTab('maquinaria',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+      Maquinaria
+    </button>
+    <button class="nav-item" onclick="goTab('monte',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 12 2 21 11"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Monte
+    </button>
+    <button class="nav-item" onclick="goTab('alertas',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Alertas
+    </button>
+    <button class="nav-item" onclick="goTab('productos',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Productos
+    </button>
+  </nav>
+
+  <div class="sb-footer">
+    <div id="last-upd">—</div>
+    <div id="auto-refresh-countdown">Actualiza en 5:00</div>
+    <button id="refresh-btn" onclick="refreshCurrent()">
+      <span class="spin" id="spin-icon">↻</span> Actualizar
+    </button>
+    <div id="admin-badge" style="display:none;background:var(--red-dim);border:1px solid var(--red);border-radius:var(--radius);padding:5px 8px;font-size:11px;color:var(--red);font-weight:600;text-align:center;margin-top:8px">MODO ADMIN ACTIVO</div>
+    <button id="admin-btn" onclick="toggleAdmin()" style="width:100%;background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--radius);padding:7px;font-size:12px;cursor:pointer;margin-top:6px;transition:color .15s,border-color .15s">Modo admin</button>
+    <button id="logout-btn" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+</aside>
+
+<!-- PANTALLA DE LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2"><path d="M12 2a9 9 0 0 1 9 9c0 4.97-9 13-9 13S3 15.97 3 11a9 9 0 0 1 9-9z"/><circle cx="12" cy="11" r="3"/></svg>
+    </div>
+    <h1>Las 40 · Nuez Pecan</h1>
+    <p>Sistema de gestión de campo</p>
+    <input type="password" id="login-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')intentarLogin()"/>
+    <button onclick="intentarLogin()">Entrar</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main id="main">
+
+  <!-- TAB: RESUMEN -->
+  <div id="tab-resumen" class="tab-panel active">
+    <div class="page-header">
+      <h1>Resumen</h1>
+      <p>Vista general de operaciones · <span id="hoy"></span></p>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi b"><div class="kpi-label">Registros esta semana</div><div class="kpi-val" id="k-semana">—</div><div class="kpi-sub">últimos 7 días</div></div>
+      <div class="kpi g"><div class="kpi-label">Actividad más frecuente</div><div class="kpi-val" id="k-act" style="font-size:16px;padding-top:6px">—</div><div class="kpi-sub" id="k-act-sub"></div></div>
+      <div class="kpi y"><div class="kpi-label">Último registro</div><div class="kpi-val" id="k-last" style="font-size:18px;padding-top:4px">—</div><div class="kpi-sub" id="k-last-sub"></div></div>
+      <div class="kpi r"><div class="kpi-label">Sin clasificar</div><div class="kpi-val" id="k-nc">—</div><div class="kpi-sub">pendientes de revisión</div></div>
+      <div class="kpi g"><div class="kpi-label">Kg cosechados</div><div class="kpi-val" id="k-kg">—</div><div class="kpi-sub">temporada 2026</div></div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Actividades — últimos 30 días</div>
+        <div id="chart-r" style="overflow-x:auto"><div class="sk" style="height:180px"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Mensajes no procesados</div>
+        <div id="alerts-r"><div class="sk" style="height:180px"></div></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">Últimos 10 registros</div>
+      <div class="tbl-wrap" id="tbl-r"><div class="sk" style="height:120px"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Clima — últimos 60 días</div>
+      <div id="chart-climo"><div class="sk" style="height:300px"></div></div>
+    </div>
+  </div>
+
+  <!-- TAB: ACTIVIDADES -->
+  <div id="tab-actividades" class="tab-panel">
+    <div class="page-header"><h1>Actividades</h1><p>Historial completo de trabajo registrado</p></div>
+    <div class="filters">
+      <select id="fil-trab"><option value="">Todos los trabajadores</option></select>
+      <select id="fil-mes"><option value="">Todos los meses</option></select>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Registros por día — último mes</div>
+      <div id="chart-a"><div class="sk" style="height:120px"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Registros</div>
+      <div class="tbl-wrap" id="tbl-a"><div class="sk" style="height:200px"></div></div>
+    </div>
+  </div>
+
+  <!-- TAB: CLIMA -->
+  <div id="tab-clima" class="tab-panel">
+    <div class="page-header"><h1>Clima</h1><p>Temperatura y lluvia registradas por operarios</p></div>
+    <div class="climate-kpi">
+      <div class="kpi b"><div class="kpi-label">Temp. promedio período</div><div class="kpi-val" id="k-temp">—</div><div class="kpi-sub" id="k-temp-sub">promedio máximas</div></div>
+      <div class="kpi g"><div class="kpi-label">Días sin lluvia</div><div class="kpi-val" id="k-seco">—</div><div class="kpi-sub">consecutivos</div></div>
+    </div>
+    <div class="filters" style="margin-bottom:16px">
+      <label style="font-size:12px;color:var(--text2);align-self:center">Período:</label>
+      <select id="fil-clima">
+        <option value="7">Últimos 7 días</option>
+        <option value="14">Últimas 2 semanas</option>
+        <option value="30" selected>Últimos 30 días</option>
+        <option value="60">Últimos 60 días</option>
+        <option value="90">Últimos 90 días</option>
+        <option value="180">Últimos 6 meses</option>
+        <option value="365">Último año</option>
+      </select>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Este mes — días laborales vs lluvia</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+        <div class="kpi g" style="padding:12px 14px"><div class="kpi-label">Días trabajados</div><div class="kpi-val" id="k-trab-mes">—</div></div>
+        <div class="kpi b" style="padding:12px 14px"><div class="kpi-label">Días de lluvia</div><div class="kpi-val" id="k-lluv-mes">—</div></div>
+        <div class="kpi" style="padding:12px 14px"><div class="kpi-label">Sin registro</div><div class="kpi-val" id="k-sinreg-mes" style="color:var(--text3)">—</div></div>
+      </div>
+      <div id="chart-semanas"><div class="sk" style="height:80px"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Temperatura y lluvia — últimos 30 días</div>
+      <div id="chart-temp-lluvia"><div class="sk" style="height:160px"></div></div>
+    </div>
+  </div>
+
+  <!-- TAB: MAQUINARIA -->
+  <div id="tab-maquinaria" class="tab-panel">
+    <div class="page-header"><h1>Maquinaria & Herramientas</h1><p>Último uso registrado por equipo</p></div>
+    <div class="card-title" style="margin-bottom:10px">Maquinaria</div>
+    <div class="equip-grid" id="equip-maq"></div>
+    <div class="card-title" style="margin-bottom:10px;margin-top:8px">Herramientas</div>
+    <div class="equip-grid" id="equip-herr"></div>
+  </div>
+
+  <!-- TAB: MONTE -->
+  <div id="tab-monte" class="tab-panel">
+    <div class="page-header">
+      <h1>Monte</h1>
+      <p>Mapa árbol por árbol · <span id="monte-status" style="color:var(--text3)">Cargando…</span></p>
+    </div>
+    <!-- Layer selector -->
+    <div id="monte-layers" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
+    <!-- Zoom controls -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="zoom-btn" onclick="monteZoom(-1)" title="Alejar">−</button>
+      <span id="zoom-label" style="font-size:12px;color:var(--text2);min-width:32px;text-align:center">2×</span>
+      <button class="zoom-btn" onclick="monteZoom(+1)" title="Acercar">+</button>
+      <button class="zoom-btn" onclick="monteZoom(0)" title="Restablecer" style="width:auto;padding:0 10px;font-size:11px">↺</button>
+      <span style="font-size:11px;color:var(--text3);margin-left:6px">Hover → tooltip · Click → historial del árbol</span>
+    </div>
+    <!-- Map + detail panel -->
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <div style="flex:1;min-width:0">
+        <div id="monte-map-area" style="max-height:72vh">
+          <div id="monte-map-inner" style="transform-origin:top left;display:inline-block">
+            <div class="sk" style="height:320px;width:160px"></div>
+          </div>
+        </div>
+        <!-- Legend -->
+        <div id="monte-leyenda" style="margin-top:14px"></div>
+      </div>
+      <!-- Detail panel -->
+      <div id="tree-panel">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div id="tree-panel-title" style="font-weight:600;font-size:14px;color:var(--text)"></div>
+            <div id="tree-panel-sub" style="font-size:11px;color:var(--text3);margin-top:1px"></div>
+          </div>
+          <button onclick="closeTreePanel()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;line-height:1;padding:0 2px">×</button>
+        </div>
+        <div id="tree-panel-body"></div>
+      </div>
+    </div>
+    <div id="monte-tooltip"></div>
+  </div>
+
+  <!-- TAB: PRODUCTOS -->
+  <div id="tab-productos" class="tab-panel">
+    <div class="page-header"><h1>Productos</h1><p>Stock actual y alertas de reposición</p></div>
+    <div id="prod-alertas-wrap" style="display:none;margin-bottom:16px">
+      <div class="card" style="border-color:var(--red)">
+        <div class="card-title" style="color:var(--red)">Stock bajo — requiere reposición</div>
+        <div id="prod-alertas-list"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Stock actual</div>
+      <div class="tbl-wrap" id="prod-tabla"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Últimos movimientos</div>
+      <div class="tbl-wrap" id="prod-movimientos"></div>
+    </div>
+  </div>
+
+  <!-- TAB: ALERTAS -->
+  <div id="tab-alertas" class="tab-panel">
+    <div class="page-header"><h1>Alertas</h1><p>Mensajes, registros sin clasificar y jobs fallidos</p></div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Todos los mensajes recibidos</div>
+      <div id="msg-log"></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Registros sin clasificar</div>
+      <div class="tbl-wrap" id="tbl-nc"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Jobs fallidos (requieren reintento)</div>
+      <div class="tbl-wrap" id="tbl-failed-jobs"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Modal service maquinaria -->
+<div id="maq-modal" onclick="if(event.target===this)closeMaqPanel()">
+  <div class="maq-modal-box">
+    <div id="maq-modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// AUTH
+// ============================================================
+const LOGIN_KEY  = "las40_auth";
+const ADMIN_KEY  = "las40_admin";
+const LOGIN_PWD  = "montepecan";
+const ADMIN_PWD  = "capitansarmiento";
+
+function checkAuth(){
+  if(sessionStorage.getItem(LOGIN_KEY) === "1"){
+    document.getElementById("login-screen").classList.add("hidden");
+  }
+  // Si no hay sesión, la pantalla de login ya es visible por defecto
+}
+
+function intentarLogin(){
+  const val = document.getElementById("login-pass").value;
+  if(val === LOGIN_PWD){
+    sessionStorage.setItem(LOGIN_KEY, "1");
+    document.getElementById("login-screen").classList.add("hidden");
+    document.getElementById("login-error").textContent = "";
+  } else {
+    document.getElementById("login-error").textContent = "Contraseña incorrecta";
+    document.getElementById("login-pass").value = "";
+    document.getElementById("login-pass").focus();
+  }
+}
+
+function cerrarSesion(){
+  sessionStorage.removeItem(LOGIN_KEY);
+  sessionStorage.removeItem(ADMIN_KEY);
+  document.getElementById("login-screen").classList.remove("hidden");
+  document.getElementById("login-pass").value = "";
+  document.getElementById("login-error").textContent = "";
+  actualizarModoAdmin();
+}
+
+function isAdmin(){ return sessionStorage.getItem(ADMIN_KEY) === "1"; }
+
+function toggleAdmin(){
+  if(isAdmin()){
+    sessionStorage.removeItem(ADMIN_KEY);
+    actualizarModoAdmin();
+    return;
+  }
+  const pwd = prompt("Contraseña de administrador:");
+  if(pwd === ADMIN_PWD){
+    sessionStorage.setItem(ADMIN_KEY, "1");
+    actualizarModoAdmin();
+  } else if(pwd !== null){
+    alert("Contraseña incorrecta");
+  }
+}
+
+function actualizarModoAdmin(){
+  const badge = document.getElementById("admin-badge");
+  const btn   = document.getElementById("admin-btn");
+  if(isAdmin()){
+    badge.style.display = "";
+    btn.textContent = "Salir de modo admin";
+    btn.style.color = "var(--red)";
+    btn.style.borderColor = "var(--red)";
+  } else {
+    badge.style.display = "none";
+    btn.textContent = "Modo admin";
+    btn.style.color = "";
+    btn.style.borderColor = "";
+  }
+}
+
+// Verificar al cargar
+checkAuth();
+
+// ============================================================
+// Config
+// ============================================================
+const SUPABASE_URL      = "https://quzunujjtjdrwmhrbrnf.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1enVudWpqdGpkcndtaHJicm5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MDEzOTYsImV4cCI6MjA5MTA3NzM5Nn0.mkMtfZIcwqSKW5lVt2XFd8dkJOrSC6DwJ1KT_pa-8zM";
+
+// ============================================================
+// State
+// ============================================================
+let currentTab = "resumen";
+const loaded = {};
+
+// ============================================================
+// Fetch helper — PostgREST
+// VERIFICAR: ${SUPABASE_URL}/rest/v1/<tabla>
+// ============================================================
+async function sb(table, params = {}) {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString(), {
+    headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":`Bearer ${SUPABASE_ANON_KEY}`,"Accept":"application/json"}
+  });
+  if (!res.ok) throw new Error(`${table} ${res.status}`);
+  return res.json();
+}
+
+// ============================================================
+// Utils
+// ============================================================
+const esc = s => String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const isoDesde = d => { const dt=new Date(); dt.setDate(dt.getDate()-d); return dt.toISOString(); };
+function ago(iso){
+  if(!iso) return "—";
+  const m=Math.floor((Date.now()-new Date(iso))/60000);
+  if(m<1) return "ahora"; if(m<60) return `${m}m`; const h=Math.floor(m/60);
+  if(h<24) return `${h}h`; return `${Math.floor(h/24)}d`;
+}
+function fmtD(iso){ if(!iso) return "—"; return new Date(iso).toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric"}); }
+function fmtDT(iso){ if(!iso) return "—"; return new Date(iso).toLocaleString("es-AR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}); }
+function confB(v){
+  if(v==null) return `<span style="color:var(--text3)">—</span>`;
+  const p=Math.round(v*100), cls=v>=.8?"b-g":v>=.5?"b-y":"b-r";
+  return `<span class="badge ${cls}">${p}%</span>`;
+}
+function animCount(el, target){
+  let n=0; const step=Math.ceil(target/20);
+  const t=setInterval(()=>{ n=Math.min(n+step,target); el.textContent=n; if(n>=target) clearInterval(t); },40);
+}
+
+// ============================================================
+// NAV
+// ============================================================
+function goTab(tab, btn){
+  document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(b=>b.classList.remove("active"));
+  document.getElementById("tab-"+tab).classList.add("active");
+  if(btn) btn.classList.add("active");
+  currentTab=tab;
+  if(!loaded[tab]) { loaded[tab]=true; loadTab(tab); }
+  if(window.innerWidth<=900) toggleSidebar();
+}
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("overlay").style.display=
+    document.getElementById("sidebar").classList.contains("open")?"block":"none";
+}
+// ============================================================
+// AUTO-REFRESH cada 5 minutos
+// ============================================================
+const AUTO_REFRESH_MS = 5 * 60 * 1000;
+let _arSecondsLeft = 300;
+let _arInterval = null;
+
+function arReset() {
+  _arSecondsLeft = 300;
+  arUpdateLabel();
+}
+
+function arUpdateLabel() {
+  const m = Math.floor(_arSecondsLeft / 60);
+  const s = String(_arSecondsLeft % 60).padStart(2, "0");
+  const el = document.getElementById("auto-refresh-countdown");
+  if (el) el.textContent = `Actualiza en ${m}:${s}`;
+}
+
+function arStart() {
+  if (_arInterval) clearInterval(_arInterval);
+  _arInterval = setInterval(() => {
+    if (document.visibilityState !== "visible") return; // pausar si la pestaña no está activa
+    _arSecondsLeft--;
+    arUpdateLabel();
+    if (_arSecondsLeft <= 0) {
+      arReset();
+      delete loaded[currentTab];
+      loadTab(currentTab);
+    }
+  }, 1000);
+}
+
+arStart();
+
+function refreshCurrent(){ arReset(); delete loaded[currentTab]; loadTab(currentTab); }
+function setRefreshing(on){
+  document.getElementById("refresh-btn").disabled=on;
+  document.getElementById("spin-icon").classList.toggle("spinning",on);
+}
+
+// ============================================================
+// TAB ROUTER
+// ============================================================
+async function loadTab(tab){
+  setRefreshing(true);
+  try{
+    if(tab==="resumen")     await loadResumen();
+    if(tab==="actividades") await loadActividades();
+    if(tab==="clima")       await loadClima();
+    if(tab==="maquinaria")  await loadMaquinaria();
+    if(tab==="monte")       await loadMonte();
+    if(tab==="alertas")     await loadAlertas();
+    if(tab==="productos")   await loadProductos();
+  } catch(e){ console.error(e); }
+  document.getElementById("last-upd").textContent = "Actualizado: "+fmtDT(new Date().toISOString());
+  setRefreshing(false);
+}
+
+// ============================================================
+// RESUMEN
+// ============================================================
+async function loadResumen(){
+  const temporadaDesde = `${new Date().getFullYear()}-04-01`;
+  const [semana, todos, ultimos, sinClas, log30, kgRows, climo60] = await Promise.all([
+    sb("registros_trabajo",{select:"id,actividad",created_at:`gte.${isoDesde(7)}`,limit:"1000"}),
+    sb("registros_trabajo",{select:"created_at",order:"created_at.desc",limit:"1"}),
+    sb("registros_trabajo",{select:"created_at,actividad,confianza,campos",order:"created_at.desc",limit:"10"}),
+    sb("registros_trabajo",{select:"id",clasificado:"eq.false",limit:"500"}),
+    sb("registros_trabajo",{select:"actividad",created_at:`gte.${isoDesde(30)}`,limit:"2000"}),
+    sb("eventos_arbol",{select:"kg_nuez_cosechada",fecha:`gte.${temporadaDesde}`,kg_nuez_cosechada:"not.is.null",limit:"50000"}).catch(()=>[]),
+    sb("registros_trabajo",{select:"created_at,campos",created_at:`gte.${isoDesde(60)}`,limit:"5000"}).catch(()=>[]),
+  ]);
+
+  // Parallel load of alerts separately
+  const alerts = await sb("message_log",{select:"whatsapp_message_id,tipo_mensaje,timestamp,created_at",order:"created_at.desc",limit:"5"}).catch(()=>[]);
+
+  // KPIs
+  const kSemana=document.getElementById("k-semana");
+  kSemana.textContent="0"; animCount(kSemana, semana.length);
+
+  const cnt={};
+  semana.forEach(r=>{ const a=r.actividad??"sin_clasificar"; cnt[a]=(cnt[a]??0)+1; });
+  const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
+  if(top){ document.getElementById("k-act").textContent=top[0].replace(/_/g," ");
+           document.getElementById("k-act-sub").textContent=`${top[1]} registro${top[1]!==1?"s":""}`; }
+
+  if(todos.length){ document.getElementById("k-last").textContent=ago(todos[0].created_at);
+                    document.getElementById("k-last-sub").textContent=fmtD(todos[0].created_at); }
+
+  const kNc=document.getElementById("k-nc");
+  kNc.textContent="0"; animCount(kNc, sinClas.length);
+
+  // KPI kg cosechados
+  const totalKg = kgRows.reduce((s,r)=>s+(r.kg_nuez_cosechada??0),0);
+  document.getElementById("k-kg").textContent = totalKg>0 ? totalKg.toFixed(1)+" kg" : "—";
+
+  // Gráfico actividades
+  const cnt30={};
+  log30.forEach(r=>{ const a=r.actividad??"sin_clasificar"; cnt30[a]=(cnt30[a]??0)+1; });
+  document.getElementById("chart-r").innerHTML = barChart(cnt30, 400);
+
+  // Alertas mini
+  document.getElementById("alerts-r").innerHTML = alerts.length
+    ? alerts.map(r=>`<div class="alert-item"><div class="alert-tipo">${esc(r.tipo_mensaje??"—")}</div><div class="alert-id">${esc(r.whatsapp_message_id??"")}</div><div class="alert-time">${ago(r.timestamp??r.created_at)}</div></div>`).join("")
+    : emptyState("Sin mensajes pendientes");
+
+  // Tabla
+  document.getElementById("tbl-r").innerHTML = ultimos.length
+    ? tablaRegistros(ultimos)
+    : emptyState("Sin registros");
+
+  // Climograma
+  document.getElementById("chart-climo").innerHTML = climograma(climo60);
+}
+
+// ============================================================
+// ACTIVIDADES
+// ============================================================
+async function loadActividades(){
+  const rows = await sb("registros_trabajo",{
+    select:"created_at,actividad,confianza,clasificado,campos",
+    order:"created_at.desc",limit:"500"
+  });
+
+  // Populate filters
+  const trabSet=new Set(), mesSet=new Set();
+  rows.forEach(r=>{
+    if(r.campos?.trabajador_nombre) trabSet.add(r.campos.trabajador_nombre);
+    const m=r.created_at?.slice(0,7); if(m) mesSet.add(m);
+  });
+  const ftrab=document.getElementById("fil-trab");
+  const fmes=document.getElementById("fil-mes");
+  ftrab.innerHTML=`<option value="">Todos los trabajadores</option>`+[...trabSet].sort().map(t=>`<option>${esc(t)}</option>`).join("");
+  fmes.innerHTML=`<option value="">Todos los meses</option>`+[...mesSet].sort().reverse().map(m=>`<option>${m}</option>`).join("");
+
+  const render=()=>{
+    const tv=ftrab.value, mv=fmes.value;
+    const filtered=rows.filter(r=>{
+      if(tv && r.campos?.trabajador_nombre!==tv) return false;
+      if(mv && !r.created_at?.startsWith(mv)) return false;
+      return true;
+    });
+    // Line chart por día
+    const byDay={};
+    filtered.forEach(r=>{ const d=r.created_at?.slice(0,10); if(d) byDay[d]=(byDay[d]??0)+1; });
+    document.getElementById("chart-a").innerHTML = lineChart(byDay,"Registros",30,"var(--green)");
+    // Tabla
+    document.getElementById("tbl-a").innerHTML = filtered.length
+      ? tablaRegistros(filtered.slice(0,200))
+      : emptyState("Sin registros con estos filtros");
+  };
+  ftrab.onchange=render; fmes.onchange=render;
+  render();
+}
+
+// ============================================================
+// CLIMA
+// ============================================================
+async function loadClima(){
+  const sel = document.getElementById("fil-clima");
+  const dias = parseInt(sel?.value ?? "30", 10);
+
+  // Attach change listener once
+  if(sel && !sel._climaListenerAttached){
+    sel._climaListenerAttached = true;
+    sel.addEventListener("change", () => renderClima());
+  }
+
+  await renderClima(dias);
+}
+
+async function renderClima(dias){
+  const sel = document.getElementById("fil-clima");
+  const d = dias ?? parseInt(sel?.value ?? "30", 10);
+
+  // Update titles
+  const label = sel ? sel.options[sel.selectedIndex]?.text : `Últimos ${d} días`;
+  const titleSuffix = label ?? `Últimos ${d} días`;
+  const elTT = document.getElementById("title-temp");
+  const elTL = document.getElementById("title-lluvia");
+  if(elTT) elTT.textContent = `Temperatura máx/mín — ${titleSuffix}`;
+  if(elTL) elTL.textContent = `Lluvia (mm) — ${titleSuffix}`;
+
+  // Skeleton while fetching
+  document.getElementById("chart-temp-lluvia").innerHTML = '<div class="sk" style="height:160px"></div>';
+
+  // Fetch periodo seleccionado + mes actual en paralelo
+  const hoyD = new Date();
+  const mesDesde = `${hoyD.getFullYear()}-${String(hoyD.getMonth()+1).padStart(2,"0")}-01`;
+  const [rows, rowsMes] = await Promise.all([
+    sb("registros_trabajo",{select:"created_at,campos",created_at:`gte.${isoDesde(d)}`,limit:"2000"}),
+    sb("registros_trabajo",{select:"created_at,campos",created_at:`gte.${mesDesde}`,limit:"2000"}),
+  ]);
+
+  const tempData={}, lluviaData={};
+  let ultimaLluvia=null;
+
+  rows.forEach(r=>{
+    const day=r.created_at?.slice(0,10);
+    const c=r.campos??{};
+    if(!day) return;
+    if(c.temp_maxima!=null||c.temp_minima!=null){
+      if(!tempData[day]) tempData[day]={max:[],min:[]};
+      if(c.temp_maxima!=null) tempData[day].max.push(c.temp_maxima);
+      if(c.temp_minima!=null) tempData[day].min.push(c.temp_minima);
+    }
+    if(c.mm_lluvia!=null){
+      lluviaData[day]=(lluviaData[day]??0)+c.mm_lluvia;
+      if(c.mm_lluvia>0) ultimaLluvia=day;
+    }
+  });
+
+  // KPI temperatura
+  const maximas=Object.values(tempData).flatMap(v=>v.max);
+  document.getElementById("k-temp").textContent = maximas.length
+    ? (maximas.reduce((a,b)=>a+b,0)/maximas.length).toFixed(1)+"°C" : "—";
+
+  // KPI días secos
+  let secos=0;
+  if(ultimaLluvia){
+    const hoy=new Date(); const lluv=new Date(ultimaLluvia);
+    secos=Math.floor((hoy-lluv)/86400000);
+  }
+  document.getElementById("k-seco").textContent = ultimaLluvia ? secos : "—";
+
+  // ── Días laborales vs lluvia (mes actual) ──
+  const workedSet = new Set(), rainySet = new Set();
+  rowsMes.forEach(r => {
+    const day = r.created_at?.slice(0,10);
+    const c   = r.campos ?? {};
+    if (!day) return;
+    workedSet.add(day);
+    if ((c.mm_lluvia ?? 0) > 0) rainySet.add(day);
+  });
+  const daysInMonth = new Date(hoyD.getFullYear(), hoyD.getMonth()+1, 0).getDate();
+  const passedDays  = hoyD.getDate();
+  const noregDays   = [...Array(passedDays)].map((_,i)=>{
+    const iso = `${hoyD.getFullYear()}-${String(hoyD.getMonth()+1).padStart(2,"0")}-${String(i+1).padStart(2,"0")}`;
+    return workedSet.has(iso)||rainySet.has(iso) ? 0 : 1;
+  }).reduce((a,b)=>a+b,0);
+  const elTM = document.getElementById("k-trab-mes");
+  const elLM = document.getElementById("k-lluv-mes");
+  const elSM = document.getElementById("k-sinreg-mes");
+  if (elTM) elTM.textContent = workedSet.size;
+  if (elLM) elLM.textContent = rainySet.size;
+  if (elSM) elSM.textContent = noregDays;
+  const elSW = document.getElementById("chart-semanas");
+  if (elSW) elSW.innerHTML = stackedWeekChart(workedSet, rainySet, hoyD.getFullYear(), hoyD.getMonth()+1);
+
+  // Gráfico temperatura + lluvia combinado
+  const tempDias=Object.keys(tempData).sort();
+  const lluviaDias=Object.keys(lluviaData).sort();
+  const allDias=[...new Set([...tempDias,...lluviaDias])].sort();
+
+  if(allDias.length){
+    const maxArr=allDias.map(day=>{ const v=tempData[day]?.max; return v?.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):null; });
+    const minArr=allDias.map(day=>{ const v=tempData[day]?.min; return v?.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):null; });
+    const byDay={}; allDias.forEach(day=>{ byDay[day]=+(lluviaData[day]??0).toFixed(1); });
+    document.getElementById("chart-temp-lluvia").innerHTML = tempAndRainChart(allDias,maxArr,minArr,byDay);
+  } else {
+    document.getElementById("chart-temp-lluvia").innerHTML = emptyState("Sin datos de clima");
+  }
+}
+
+// ============================================================
+// MAQUINARIA
+// ============================================================
+let _maqService = [];
+
+async function loadMaquinaria(){
+  const [rows, svcRows] = await Promise.all([
+    sb("registros_trabajo",{select:"created_at,campos",order:"created_at.desc",limit:"2000"}),
+    sb("maquinaria_service",{select:"maquinaria,fecha_service,tipo_service,proximo_service,notas",order:"fecha_service.desc",limit:"200"}).catch(()=>[]),
+  ]);
+
+  _maqService = svcRows;
+
+  const lastUso={}, totalNafta={};
+  rows.forEach(r=>{
+    const c=r.campos??{};
+    ["maquinaria","herramienta"].forEach(k=>{
+      const v=c[k];
+      if(v && v!=="no_se_uso" && !lastUso[v]) lastUso[v]=r.created_at;
+    });
+    if(c.litros_nafta!=null && c.maquinaria)
+      totalNafta[c.maquinaria]=(totalNafta[c.maquinaria]??0)+Number(c.litros_nafta);
+  });
+
+  // Último service por máquina
+  const lastSvc={};
+  svcRows.forEach(s=>{ if(!lastSvc[s.maquinaria]) lastSvc[s.maquinaria]=s; });
+
+  const maquinas=["cuatriciclo","tractor","shaker"];
+  const herramientas=["pala_1","pala_2","tijera_1","tijera_2","motosierra_1","motosierra_2","desmalezadora_1","desmalezadora_2","pulverizadora","sopladora"];
+
+  const maqCard=(name)=>{
+    const last=lastUso[name];
+    const dias=last?Math.floor((Date.now()-new Date(last))/86400000):null;
+    const nafta=totalNafta[name];
+    const svc=lastSvc[name];
+    const next=svc?.proximo_service;
+    const nextDias=next?Math.floor((new Date(next)-Date.now())/86400000):null;
+    const svcColor=nextDias==null?"var(--text3)":nextDias<0?"var(--red)":nextDias<30?"var(--yellow)":"var(--green)";
+    return `<div class="equip-card maq-clickable" onclick="openMaqPanel('${name}')" style="cursor:pointer;border:1px solid var(--border)">
+      <div class="equip-name">${name.replace(/_/g," ")}</div>
+      <div class="equip-last">${last?fmtD(last):"Sin uso registrado"}</div>
+      ${last?`<div class="equip-ago">${dias} <span>días atrás</span></div>`:""}
+      ${nafta!=null?`<div style="font-size:11px;color:var(--blue);margin-top:4px">⛽ ${nafta%1===0?nafta:nafta.toFixed(1)} L nafta total</div>`:""}
+      ${svc?`<div style="font-size:10px;color:${svcColor};margin-top:4px">Últ. service: ${fmtD(svc.fecha_service)}</div>`:""}
+      ${next?`<div style="font-size:10px;color:${svcColor}">Próx: ${fmtD(next)}${nextDias!=null?" ("+( nextDias<0?"VENCIDO":nextDias+"d")+")" :""}</div>`:""}
+    </div>`;
+  };
+
+  const equipCard=(name)=>{
+    const last=lastUso[name];
+    const dias=last?Math.floor((Date.now()-new Date(last))/86400000):null;
+    return `<div class="equip-card">
+      <div class="equip-name">${name.replace(/_/g," ")}</div>
+      <div class="equip-last">${last?fmtD(last):"Sin registros"}</div>
+      ${last?`<div class="equip-ago">${dias} <span>días atrás</span></div>`:""}
+    </div>`;
+  };
+
+  document.getElementById("equip-maq").innerHTML = maquinas.map(maqCard).join("");
+  document.getElementById("equip-herr").innerHTML = herramientas.map(equipCard).join("");
+}
+
+function openMaqPanel(maquinaria) {
+  const rows = _maqService.filter(s=>s.maquinaria===maquinaria)
+    .sort((a,b)=>(b.fecha_service??"").localeCompare(a.fecha_service??""));
+  const next = rows[0]?.proximo_service;
+  const nextDias = next ? Math.floor((new Date(next)-Date.now())/86400000) : null;
+  const svcColor = nextDias==null?"var(--text3)":nextDias<0?"var(--red)":nextDias<30?"var(--yellow)":"var(--green)";
+
+  let h = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+    <h3 style="font-size:16px;font-weight:700;text-transform:capitalize;color:var(--text)">${maquinaria.replace(/_/g," ")} — Service</h3>
+    <button onclick="closeMaqPanel()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:24px;line-height:1;padding:0 4px">×</button>
+  </div>`;
+
+  if (next) {
+    h += `<div style="background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:4px">Próximo service</div>
+        <div style="font-size:20px;font-weight:700;color:${svcColor}">${fmtD(next)}</div>
+      </div>
+      <div style="font-size:13px;font-weight:600;color:${svcColor}">${nextDias<0?"⚠ VENCIDO":nextDias===0?"HOY":nextDias+" días"}</div>
+    </div>`;
+  }
+
+  if (!rows.length) {
+    h += `<div style="color:var(--text3);font-size:13px;text-align:center;padding:24px 0">Sin registros de service cargados.</div>`;
+  } else {
+    h += `<div class="card-title" style="margin-bottom:10px">Historial</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Fecha</th><th>Tipo</th><th>Próximo</th><th>Notas</th></tr></thead>
+      <tbody>${rows.map(r=>`<tr>
+        <td style="white-space:nowrap">${fmtD(r.fecha_service)}</td>
+        <td>${esc(r.tipo_service??"—")}</td>
+        <td style="white-space:nowrap">${r.proximo_service?fmtD(r.proximo_service):"—"}</td>
+        <td style="color:var(--text3);max-width:160px">${esc(r.notas??"—")}</td>
+      </tr>`).join("")}</tbody>
+    </table></div>`;
+  }
+
+  document.getElementById("maq-modal-body").innerHTML = h;
+  document.getElementById("maq-modal").classList.add("open");
+}
+
+function closeMaqPanel() {
+  document.getElementById("maq-modal").classList.remove("open");
+}
+
+// ============================================================
+// MONTE — mapa árbol por árbol
+// ============================================================
+const M_COLS = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","Ñ","O","P","Q","R","S","T","U","V","W","X"];
+const M_COL_IDX = Object.fromEntries(M_COLS.map((c,i)=>[c,i]));
+const M_STEP = 4.5, M_CS = 4, M_COL_H = 24, M_ROW_W = 36, M_SEP_H = 28;
+
+// Una celda GAS por columna — tubo diagonal que cruza el lote nuevo.
+// M-131, J-132, C-134 interpolados de la diagonal: VERIFICAR contra el mapa real.
+const M_GAS = new Set([
+  "X-126",
+  "W-127", "V-127", "U-127",
+  "T-128", "S-128", "R-128",
+  "Q-129", "P-129", "O-129",
+  "Ñ-130", "N-130",
+  "L-131", "K-131",
+  "J-132", "I-132", "H-132",
+  "G-133", "F-133", "E-133",
+  "D-134", "C-134", "B-134",
+  "A-135",
+]);
+// Zona monte natural: columnas A-J, filas 101-109 (lote nuevo sin plantar)
+const M_MONTE = new Set([
+  // A-I para filas 101-109 (monte natural)
+  ...["A","B","C","D","E","F","G","H","I"].flatMap(col =>
+    [...Array(9)].map((_,i) => `${col}-${101+i}`)
+  ),
+]);
+
+const M_VAR_FILL = {pawnee:"#2d6a4f",desirable:"#52b788",sumner:"#74c69d",forkert:"#95d5b2"};
+const M_ACT_STROKE = {
+  poda:"#f0e68c",
+  fumigacion_zinc:"#ffa500",fumigacion_cobre:"#ffa500",fumigacion_glifosato:"#ffa500",
+  fumigar_paraquat:"#ffa500",fumigar_clorpirifos:"#ffa500",tirar_fipronil:"#ffa500",tirar_urea:"#ffa500",
+  juntar_nueces:"#ffd700",
+  cortar_pasto_largo:"#90ee90",cortar_pasto_ancho:"#90ee90",
+};
+
+let _mZoom = 2;
+let _mLastEvt   = new Map();
+let _mAct30     = new Map(); // arbol_id → actividad (last 30 days)
+let _mKg        = new Map(); // arbol_id → total kg cosechados
+let _mKgMax     = 1;
+let _mCurrentLayer = "variedad";
+
+const MONTE_LAYERS = [
+  {id:"variedad",       label:"Variedad"},
+  {id:"poda",           label:"Poda"},
+  {id:"fumigacion_zinc",label:"Fumig. Zinc"},
+  {id:"fumigacion_cobre",label:"Fumig. Cobre"},
+  {id:"fumigacion_glifosato",label:"Glifosato"},
+  {id:"juntar_nueces",  label:"Juntar Nueces"},
+  {id:"fumigar_paraquat",label:"Paraquat"},
+  {id:"tirar_fipronil", label:"Fipronil"},
+  {id:"cortar_pasto_largo",label:"Pasto Largo"},
+  {id:"cortar_pasto_ancho",label:"Pasto Ancho"},
+  {id:"tirar_urea",     label:"Urea"},
+  {id:"sin_actividad",  label:"Sin actividad (30d)"},
+  {id:"produccion",     label:"Producción (kg)"},
+];
+
+// Máxima fila válida por columna en lote viejo
+const M_MAX_FILA_VIEJO = {
+  A:61,B:61,C:62,D:62,E:63,F:63,G:64,H:64,
+  I:65,J:65,K:65,L:66,M:67,N:68,"Ñ":68,
+  O:70,P:70,Q:74,R:74,S:75,T:75,U:75,V:75,W:75,X:75
+};
+
+// Devuelve true si la celda NO tiene árbol (ni gas ni monte — solo fuera de rango)
+function mEsCeldaInvalida(col, fila) {
+  if (fila >= 1 && fila <= 75) {
+    const max = M_MAX_FILA_VIEJO[col];
+    return max == null || fila > max;
+  }
+  if (fila >= 101 && fila <= 186) {
+    const ci = M_COL_IDX[col] ?? -1;
+    const jIdx = 9;
+    if (fila <= 108) return ci < jIdx;           // A-I inválidas
+    if (fila === 109) return ci < jIdx;          // A-I inválidas (J-109 = MONTE, manejado aparte)
+    if (fila <= 185) return false;               // A-X todas válidas
+    if (fila === 186) return col==="A"||col==="B";
+  }
+  return true;
+}
+
+function mColRange(fila) {
+  if (fila >= 1   && fila <= 75)  return [0, 24];
+  if (fila >= 101 && fila <= 186) return [0, 24];
+  return null;
+}
+
+function mVariedad(col) {
+  const i = M_COL_IDX[col];
+  if ([24,23,22].includes(i)) return "pawnee";
+  if ([21,20,19].includes(i)) return "desirable";
+  if ([18,17,16].includes(i)) return "sumner";
+  if ([15,14,13,12].includes(i)) return "forkert";
+  if ([11,10,9].includes(i))  return "pawnee";
+  if ([8,7,6].includes(i))    return "desirable";
+  if ([5,4,3].includes(i))    return "sumner";
+  return "forkert"; // C B A
+}
+
+function monteZoom(dir) {
+  const levels = [0.5, 1, 1.5, 2, 3, 4, 6];
+  if (dir === 0) { _mZoom = 2; }
+  else {
+    const idx = levels.findIndex(v => Math.abs(v - _mZoom) < 0.01);
+    _mZoom = levels[Math.max(0, Math.min(levels.length-1, idx + dir))];
+  }
+  const inner = document.getElementById("monte-map-inner");
+  const svg   = document.getElementById("monte-svg");
+  if (!inner || !svg) return;
+  inner.style.transform = `scale(${_mZoom})`;
+  inner.style.width  = (parseFloat(svg.getAttribute("width"))  * _mZoom) + "px";
+  inner.style.height = (parseFloat(svg.getAttribute("height")) * _mZoom) + "px";
+  document.getElementById("zoom-label").textContent = _mZoom + "×";
+}
+
+async function loadMonte() {
+  // Fetch todos los eventos — incluye kg y fecha para capas
+  const events = await sb("eventos_arbol", {
+    select: "fila,columna,actividad,fecha,trabajador,observaciones,kg_nuez_cosechada",
+    order:  "fecha.desc",
+    limit:  "10000",
+  }).catch(() => []);
+
+  const cutoff30 = isoDesde(30).slice(0,10);
+  _mLastEvt = new Map();
+  _mAct30   = new Map();
+  _mKg      = new Map();
+
+  events.forEach(e => {
+    const id = `${e.columna}-${e.fila}`;
+    if (!_mLastEvt.has(id)) _mLastEvt.set(id, e);
+    if (e.fecha >= cutoff30 && !_mAct30.has(id)) _mAct30.set(id, e.actividad);
+    if (e.kg_nuez_cosechada) _mKg.set(id, (_mKg.get(id)??0) + e.kg_nuez_cosechada);
+  });
+  _mKgMax = Math.max(...[..._mKg.values()], 1);
+
+  // Construir selector de capas (solo la primera vez)
+  const layersEl = document.getElementById("monte-layers");
+  if (!layersEl.children.length) {
+    layersEl.innerHTML = MONTE_LAYERS.map(l =>
+      `<button class="layer-btn${l.id===_mCurrentLayer?" active":""}" data-layer="${l.id}" onclick="setMonteLayer('${l.id}')">${l.label}</button>`
+    ).join("");
+  }
+
+  // Render mapa + adjuntar listeners (solo la primera vez)
+  renderMonteMap();
+
+  const mapArea = document.getElementById("monte-map-area");
+  if (!mapArea._eventsAttached) {
+    mapArea._eventsAttached = true;
+    const tooltip = document.getElementById("monte-tooltip");
+
+    mapArea.addEventListener("mousemove", e => {
+      const el = e.target;
+      if (!el.dataset.id) { tooltip.style.display="none"; return; }
+      const id = el.dataset.id, type = el.dataset.type;
+      if (type==="gas") {
+        tooltip.innerHTML = `<b>${id}</b><br><span style="color:var(--text3)">Celda GAS — sin árbol</span>`;
+      } else if (type==="monte") {
+        tooltip.innerHTML = `<b>${id}</b><br><span style="color:var(--blue)">MONTE</span>`;
+      } else {
+        const vr = el.dataset.vr??"—";
+        const evt = _mLastEvt.get(id);
+        const act = evt ? evt.actividad.replace(/_/g," ") : "Sin actividad registrada";
+        const fecha = evt?.fecha??"";
+        const trab  = evt?.trabajador??"";
+        const kg    = _mKg.get(id);
+        tooltip.innerHTML = `<b>${id}</b> · <span style="color:${M_VAR_FILL[vr]??'#8b949e'}">${vr}</span>`
+          + `<br>Últ. actividad: <b>${act}</b>`
+          + (fecha ? `<br>Fecha: ${fecha}` : "")
+          + (trab  ? `<br>Trabajador: ${trab}` : "")
+          + (kg    ? `<br>Kg cosechados: ${kg.toFixed(1)} kg` : "");
+      }
+      tooltip.style.display="block";
+      tooltip.style.left=(e.clientX+14)+"px";
+      tooltip.style.top=(e.clientY-12)+"px";
+    });
+    mapArea.addEventListener("mouseleave", () => { document.getElementById("monte-tooltip").style.display="none"; });
+    mapArea.addEventListener("click", e => {
+      const el = e.target;
+      if (!el.classList.contains("tree-cell")) return;
+      openTreePanel(el.dataset.id, el.dataset.vr);
+    });
+  }
+
+  document.getElementById("monte-status").textContent =
+    `${_mLastEvt.size} árbol${_mLastEvt.size!==1?"es":""} con datos registrados`;
+}
+
+function setMonteLayer(layerId) {
+  _mCurrentLayer = layerId;
+  document.querySelectorAll(".layer-btn").forEach(b => b.classList.toggle("active", b.dataset.layer===layerId));
+  renderMonteMap();
+}
+
+function getLayerStyle(id, col) {
+  const DARK = "#1c2128";
+  const l = _mCurrentLayer;
+
+  if (l === "variedad") {
+    const vr  = mVariedad(col);
+    const evt = _mLastEvt.get(id);
+    const stroke = evt ? (M_ACT_STROKE[evt.actividad] ?? "#ffffff") : "none";
+    return { fill: M_VAR_FILL[vr], stroke, sw: evt?"0.9":"0", vr };
+  }
+
+  if (l === "sin_actividad") {
+    const has = _mAct30.has(id);
+    return { fill: has?"#1a3d0a":"#5a1a1a", stroke: has?"none":"#f85149", sw: has?"0":"0.7", vr: mVariedad(col) };
+  }
+
+  if (l === "produccion" || l === "juntar_nueces") {
+    const kg = _mKg.get(id)??0;
+    if (!kg) return { fill: DARK, stroke:"none", sw:"0", vr: mVariedad(col) };
+    const t = Math.min(kg/_mKgMax, 1);
+    // dark green → gold
+    const r = Math.round(20  + t*210);
+    const g = Math.round(60  + t*145);
+    const b = Math.round(10  + t*0);
+    return { fill:`rgb(${r},${g},${b})`, stroke: t>0.5?"#ffd700":"none", sw: t>0.5?"0.5":"0", vr: mVariedad(col) };
+  }
+
+  // Activity layers — last activity in last 30 days matches?
+  const ACT_COLORS = {
+    poda:"#f0e68c", fumigacion_zinc:"#ffa500", fumigacion_cobre:"#cd7f32",
+    fumigacion_glifosato:"#ff6b35", fumigar_paraquat:"#ff4500",
+    tirar_fipronil:"#e040fb", cortar_pasto_largo:"#90ee90",
+    cortar_pasto_ancho:"#4caf50", tirar_urea:"#80deea",
+  };
+  const color = ACT_COLORS[l];
+  if (color) {
+    const act30 = _mAct30.get(id);
+    if (act30 === l) return { fill: color, stroke:"none", sw:"0", vr: mVariedad(col) };
+    return { fill: DARK, stroke:"none", sw:"0", vr: mVariedad(col) };
+  }
+
+  // fallback variedad
+  return { fill: M_VAR_FILL[mVariedad(col)], stroke:"none", sw:"0", vr: mVariedad(col) };
+}
+
+function renderMonteMap() {
+  const NUEVO = [...Array(86)].map((_,i) => 186 - i);
+  const VIEJO = [...Array(75)].map((_,i) => i + 1);
+
+  const SVG_W = M_ROW_W + 25 * M_STEP + 2;
+  const SVG_H = M_COL_H + 86 * M_STEP + M_SEP_H + 75 * M_STEP + 4;
+
+  let s = "";
+
+  // Cabecera columnas — X izquierda (ci=24→x menor), A derecha (ci=0→x mayor)
+  M_COLS.forEach((c, ci) => {
+    const x = (M_ROW_W + (24 - ci) * M_STEP + M_CS / 2).toFixed(1);
+    const isEnd = ci===0||ci===24;
+    s += `<text x="${x}" y="${M_COL_H-5}" text-anchor="middle" fill="${isEnd?"#8b949e":"#484f58"}" font-size="${isEnd?"7":"5.5"}" font-weight="${isEnd?"700":"400"}" font-family="system-ui">${c}</text>`;
+  });
+  s += `<text x="${M_ROW_W}" y="${M_COL_H-14}" text-anchor="middle" fill="#8b949e" font-size="5" font-family="system-ui">◄ X</text>`;
+  s += `<text x="${(M_ROW_W+24*M_STEP+M_CS).toFixed(1)}" y="${M_COL_H-14}" text-anchor="middle" fill="var(--green)" font-size="5" font-family="system-ui">A ►</text>`;
+
+  // Camino
+  const roadY1  = (M_COL_H+86*M_STEP+5).toFixed(1);
+  const roadY2  = (M_COL_H+86*M_STEP+M_SEP_H-5).toFixed(1);
+  const roadMid = (M_COL_H+86*M_STEP+M_SEP_H/2+2).toFixed(1);
+  s += `<line x1="${M_ROW_W}" y1="${roadY1}" x2="${SVG_W}" y2="${roadY1}" stroke="#21262d" stroke-width="0.5"/>`;
+  s += `<text x="${(M_ROW_W+25*M_STEP/2).toFixed(1)}" y="${roadMid}" text-anchor="middle" fill="#3d444d" font-size="4.5" font-family="system-ui">▬▬ Camino ▬▬</text>`;
+  s += `<line x1="${M_ROW_W}" y1="${roadY2}" x2="${SVG_W}" y2="${roadY2}" stroke="#21262d" stroke-width="0.5"/>`;
+
+  // Etiquetas de lote
+  const nLabelY = (M_COL_H+43*M_STEP).toFixed(1);
+  const vLabelY = (M_COL_H+86*M_STEP+M_SEP_H+37*M_STEP).toFixed(1);
+  s += `<text x="3" y="${nLabelY}" fill="#3d444d" font-size="4" font-family="system-ui" transform="rotate(-90,3,${nLabelY})">LOTE NUEVO 101-186</text>`;
+  s += `<text x="3" y="${vLabelY}" fill="#3d444d" font-size="4" font-family="system-ui" transform="rotate(-90,3,${vLabelY})">LOTE VIEJO 1-75</text>`;
+
+  const renderRows = (rows, baseY) => {
+    rows.forEach((fila, ri) => {
+      const y = baseY + ri * M_STEP;
+      const range = mColRange(fila);
+      if (!range) return;
+      const [cFrom, cTo] = range;
+      if (fila%5===0||fila===rows[0]||fila===rows[rows.length-1])
+        s += `<text x="${M_ROW_W-2}" y="${(y+M_CS-0.5).toFixed(1)}" text-anchor="end" fill="#484f58" font-size="3.5" font-family="system-ui">${fila}</text>`;
+
+      for (let ci=cFrom; ci<=cTo; ci++) {
+        const col = M_COLS[ci];
+        const id  = `${col}-${fila}`;
+        const x   = (M_ROW_W + (24 - ci) * M_STEP).toFixed(1);
+        const yf  = y.toFixed(1);
+
+        if (mEsCeldaInvalida(col, fila)) {
+          // Celda fuera del rango del campo — transparente, no clickeable
+          s += `<rect x="${x}" y="${yf}" width="${M_CS}" height="${M_CS}" fill="none" stroke="none" pointer-events="none"/>`;
+          continue;
+        }
+        if (M_GAS.has(id)) {
+          s += `<rect x="${x}" y="${yf}" width="${M_CS}" height="${M_CS}" fill="#1c2128" stroke="#30363d" stroke-width="0.4" rx="0.5" data-id="${id}" data-type="gas"/>`;
+          continue;
+        }
+        if (M_MONTE.has(id)) {
+          s += `<rect x="${x}" y="${yf}" width="${M_CS}" height="${M_CS}" fill="#1f3a5c" stroke="#58a6ff" stroke-width="0.6" rx="0.5" data-id="${id}" data-type="monte"/>`;
+          continue;
+        }
+
+        const { fill, stroke, sw, vr } = getLayerStyle(id, col);
+        const evt = _mLastEvt.get(id);
+        const dAct = evt ? ` data-act="${evt.actividad}" data-fecha="${evt.fecha||""}" data-trab="${(evt.trabajador||"").replace(/"/g,"")}"` : "";
+        s += `<rect x="${x}" y="${yf}" width="${M_CS}" height="${M_CS}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" rx="0.5" data-id="${id}" data-vr="${vr}"${dAct} class="tree-cell"/>`;
+      }
+    });
+  };
+
+  renderRows(NUEVO, M_COL_H);
+  renderRows(VIEJO, M_COL_H + 86*M_STEP + M_SEP_H);
+
+  const inner = document.getElementById("monte-map-inner");
+  inner.innerHTML = `<svg id="monte-svg" viewBox="0 0 ${SVG_W.toFixed(1)} ${SVG_H.toFixed(1)}" width="${SVG_W.toFixed(1)}" height="${SVG_H.toFixed(1)}" xmlns="http://www.w3.org/2000/svg" style="display:block">${s}</svg>`;
+  inner.style.transform = `scale(${_mZoom})`;
+  inner.style.transformOrigin = "top left";
+  inner.style.width  = (SVG_W*_mZoom)+"px";
+  inner.style.height = (SVG_H*_mZoom)+"px";
+
+  // Leyenda dinámica por capa
+  const l = _mCurrentLayer;
+  let leyHTML = "";
+  if (l==="variedad") {
+    const varL = Object.entries(M_VAR_FILL).map(([k,c])=>
+      `<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:${c};border-radius:2px"></span>${k}</span>`).join("");
+    const actL = [["#f0e68c","Poda"],["#ffa500","Fumigaciones"],["#ffd700","Juntar nueces"],["#90ee90","Cortar pasto"],["#ffffff","Otra"]].map(([c,l])=>
+      `<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border:1.5px solid ${c};border-radius:2px"></span>${l}</span>`).join("");
+    leyHTML = `<div style="font-size:11px;color:var(--text2);display:flex;flex-wrap:wrap;gap:10px;margin-bottom:5px"><b style="color:var(--text3)">Variedad:</b>${varL}</div>
+      <div style="font-size:11px;color:var(--text2);display:flex;flex-wrap:wrap;gap:10px"><b style="color:var(--text3)">Actividad (borde):</b>${actL}</div>`;
+  } else if (l==="sin_actividad") {
+    leyHTML = `<div style="font-size:11px;color:var(--text2);display:flex;gap:12px">
+      <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#1a3d0a;border-radius:2px"></span>Con actividad (30d)</span>
+      <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#5a1a1a;border:0.7px solid #f85149;border-radius:2px"></span>Sin actividad reciente</span>
+    </div>`;
+  } else if (l==="produccion"||l==="juntar_nueces") {
+    leyHTML = `<div style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:10px">
+      <b style="color:var(--text3)">Kg cosechados:</b>
+      <span style="display:inline-flex;align-items:center;gap:4px">
+        <span style="width:60px;height:10px;border-radius:2px;background:linear-gradient(to right,#1c2128,#56a100,#ffd700)"></span>
+      </span>
+      <span>0 → ${_mKgMax.toFixed(0)} kg</span>
+      <span style="color:var(--text3)">| Gris = sin datos</span>
+    </div>`;
+  } else {
+    const ACT_COLORS={poda:"#f0e68c",fumigacion_zinc:"#ffa500",fumigacion_cobre:"#cd7f32",fumigacion_glifosato:"#ff6b35",fumigar_paraquat:"#ff4500",tirar_fipronil:"#e040fb",cortar_pasto_largo:"#90ee90",cortar_pasto_ancho:"#4caf50",tirar_urea:"#80deea"};
+    const color = ACT_COLORS[l]??"#8b949e";
+    const label = MONTE_LAYERS.find(x=>x.id===l)?.label??l;
+    leyHTML = `<div style="font-size:11px;color:var(--text2);display:flex;gap:12px">
+      <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:${color};border-radius:2px"></span>${label} — realizado en últimos 30 días</span>
+      <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#1c2128;border:1px solid #30363d;border-radius:2px"></span>Sin datos</span>
+    </div>`;
+  }
+  const gasL = `<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#1c2128;border:1px solid #30363d;border-radius:2px"></span>GAS</span>
+    <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#1f3a5c;border:1px solid #58a6ff;border-radius:2px"></span>MONTE</span>`;
+  document.getElementById("monte-leyenda").innerHTML = leyHTML
+    + `<div style="font-size:11px;color:var(--text2);display:flex;gap:12px;margin-top:6px">${gasL}</div>`;
+}
+
+async function openTreePanel(arbolId, variedad) {
+  const panel = document.getElementById("tree-panel");
+  const body  = document.getElementById("tree-panel-body");
+
+  // Determinar lote desde el número de fila en el id (ej. "A-101")
+  const filaNum = parseInt(arbolId.split("-")[1], 10);
+  const lote = filaNum >= 101 ? "Lote Nuevo" : "Lote Viejo";
+  const totalKg = _mKg.get(arbolId) ?? 0;
+
+  document.getElementById("tree-panel-title").textContent = arbolId;
+  document.getElementById("tree-panel-sub").textContent =
+    [variedad ? `Variedad: ${variedad.charAt(0).toUpperCase()+variedad.slice(1)}` : "", lote].filter(Boolean).join(" · ");
+
+  body.innerHTML = `<div class="sk" style="height:80px;margin-top:12px"></div>`;
+  panel.style.display = "block";
+
+  const [treeCol, treeFila] = arbolId.split("-");
+  const hist = await sb("eventos_arbol", {
+    select:  "actividad,fecha,trabajador,producto,cantidad,unidad,horas_trabajadas,kg_nuez_cosechada,observaciones",
+    columna: `eq.${treeCol}`,
+    fila:    `eq.${treeFila}`,
+    order:   "fecha.desc",
+    limit:   "50",
+  }).catch(() => []);
+
+  // Header con kg totales
+  const kgBadge = totalKg > 0
+    ? `<div style="margin:10px 0 8px;padding:8px 10px;background:var(--card2);border-radius:var(--radius);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;color:var(--text3)">Kg cosechados total</span>
+        <span style="font-size:15px;font-weight:700;color:var(--yellow)">${totalKg.toFixed(1)} kg</span>
+       </div>`
+    : "";
+
+  if (!hist.length) {
+    body.innerHTML = kgBadge + `<div style="padding:16px 0;font-size:13px;color:var(--text3);text-align:center">Sin eventos registrados.</div>`;
+    return;
+  }
+
+  const thead = `<thead><tr>
+    <th style="font-size:10px;padding:6px 8px">Fecha</th>
+    <th style="font-size:10px;padding:6px 8px">Actividad</th>
+    <th style="font-size:10px;padding:6px 8px">Trabajador</th>
+    <th style="font-size:10px;padding:6px 8px">Producto</th>
+    <th style="font-size:10px;padding:6px 8px">Kg</th>
+    <th style="font-size:10px;padding:6px 8px">Obs.</th>
+  </tr></thead>`;
+
+  const tbody = hist.map(e => {
+    const dot = M_ACT_STROKE[e.actividad] ?? "#484f58";
+    const act = (e.actividad??"—").replace(/_/g," ");
+    const prod = e.producto ? esc(e.producto)+(e.cantidad?` ${e.cantidad}${e.unidad??""}` : "") : "—";
+    return `<tr>
+      <td style="font-size:11px;padding:5px 8px;white-space:nowrap">${e.fecha??"—"}</td>
+      <td style="font-size:11px;padding:5px 8px">
+        <span style="display:inline-flex;align-items:center;gap:4px">
+          <span style="width:6px;height:6px;background:${dot};border-radius:50%;flex-shrink:0"></span>${act}
+        </span>
+      </td>
+      <td style="font-size:11px;padding:5px 8px">${esc(e.trabajador??"—")}</td>
+      <td style="font-size:11px;padding:5px 8px;color:var(--text2)">${prod}</td>
+      <td style="font-size:11px;padding:5px 8px;color:var(--yellow)">${e.kg_nuez_cosechada!=null?e.kg_nuez_cosechada+" kg":"—"}</td>
+      <td style="font-size:11px;padding:5px 8px;color:var(--text3);max-width:80px;overflow:hidden;text-overflow:ellipsis" title="${esc(e.observaciones??"")}">${esc(e.observaciones??"—")}</td>
+    </tr>`;
+  }).join("");
+
+  body.innerHTML = kgBadge + `<div class="tbl-wrap"><table>${thead}<tbody>${tbody}</tbody></table></div>`;
+}
+
+function closeTreePanel() {
+  document.getElementById("tree-panel").style.display = "none";
+}
+
+// ============================================================
+// ALERTAS
+// ============================================================
+async function loadAlertas(){
+  const [log, nc, failedJobs] = await Promise.all([
+    sb("message_log",{select:"whatsapp_message_id,tipo_mensaje,timestamp,created_at",order:"created_at.desc"}).catch(()=>[]),
+    sb("registros_trabajo",{select:"created_at,actividad,campos",clasificado:"eq.false",order:"created_at.desc"}).catch(()=>[]),
+    sb("webhook_jobs",{select:"id,status,retry_count,last_error,created_at",status:"eq.failed",order:"created_at.desc"}).catch(()=>[]),
+  ]);
+
+  document.getElementById("msg-log").innerHTML = log.length
+    ? log.map(r=>`<div class="alert-item">
+        <div class="alert-tipo">${esc(r.tipo_mensaje??"—")}</div>
+        <div class="alert-id">${esc(r.whatsapp_message_id??"—")}</div>
+        <div class="alert-time">${fmtDT(r.timestamp??r.created_at)}</div>
+      </div>`).join("")
+    : emptyState("Sin mensajes en el log");
+
+  document.getElementById("tbl-nc").innerHTML = nc.length
+    ? tablaRegistros(nc)
+    : emptyState("Sin registros sin clasificar");
+
+  // Tabla de jobs fallidos
+  const headFailed = `<thead><tr><th>ID Job</th><th>Reintentos</th><th>Último error</th><th>Creado</th></tr></thead>`;
+  const bodyFailed = failedJobs.map(j=>`<tr>
+    <td style="font-family:monospace;font-size:11px">${esc(j.id?.slice(0,8)+"...")}</td>
+    <td>${j.retry_count ?? 0}</td>
+    <td style="max-width:300px;word-break:break-word;font-size:12px">${esc(j.last_error??"—")}</td>
+    <td>${fmtDT(j.created_at)}</td>
+  </tr>`).join("");
+  document.getElementById("tbl-failed-jobs").innerHTML = failedJobs.length
+    ? `<table>${headFailed}<tbody>${bodyFailed}</tbody></table>`
+    : emptyState("Sin jobs fallidos");
+}
+
+// ============================================================
+// SHARED: tablaRegistros
+// ============================================================
+function tablaRegistros(rows){
+  const head=`<thead><tr><th>Fecha</th><th>Trabajador</th><th>Actividad</th><th>Filas</th><th>Herramienta</th><th>Horas</th><th>Confianza</th></tr></thead>`;
+  const body=rows.map(r=>{
+    const c=r.campos??{};
+    const filas=(c.fila_desde&&c.fila_hasta)?`${c.fila_desde}→${c.fila_hasta}`:(c.fila_desde??"—");
+    return `<tr>
+      <td>${esc(c.fecha??fmtD(r.created_at))}</td>
+      <td>${esc(c.trabajador_nombre??"—")}</td>
+      <td>${esc((r.actividad??"—").replace(/_/g," "))}</td>
+      <td>${esc(filas)}</td>
+      <td>${esc(c.herramienta??"—")}</td>
+      <td>${c.horas_trabajadas!=null?c.horas_trabajadas+"h":"—"}</td>
+      <td>${confB(r.confianza)}</td>
+    </tr>`;
+  }).join("");
+  return `<table>${head}<tbody>${body}</tbody></table>`;
+}
+
+// ============================================================
+// PRODUCTOS
+// ============================================================
+async function loadProductos(){
+  const [productos, movimientos, alertas] = await Promise.all([
+    sb("productos",{select:"id,nombre,categoria,stock_actual,stock_minimo,unidad",order:"categoria.asc,nombre.asc"}).catch(()=>[]),
+    sb("stock_movimientos",{select:"id,tipo,cantidad,motivo,created_at,producto_id",order:"created_at.desc",limit:"30"}).catch(()=>[]),
+    sb("stock_alertas",{select:"producto_nombre,stock_actual,stock_minimo,created_at",resuelta:"eq.false",order:"created_at.desc"}).catch(()=>[]),
+  ]);
+
+  // Alertas de stock bajo
+  const alertaWrap = document.getElementById("prod-alertas-wrap");
+  if(alertas.length){
+    alertaWrap.style.display = "";
+    document.getElementById("prod-alertas-list").innerHTML = alertas.map(a=>
+      `<div class="alert-item">
+        <div class="alert-tipo" style="color:var(--red)">${esc(a.producto_nombre)}</div>
+        <div class="alert-id">Stock: <b>${a.stock_actual}</b> / Mín: ${a.stock_minimo}</div>
+        <div class="alert-time">${ago(a.created_at)}</div>
+      </div>`
+    ).join("");
+  } else {
+    alertaWrap.style.display = "none";
+  }
+
+  // Tabla de stock
+  const catColors = {fertilizante:"var(--green)",fungicida:"var(--blue)",herbicida:"var(--yellow)",insecticida:"var(--purple)",combustible:"var(--orange)",otro:"var(--text2)"};
+  const thead = `<thead><tr><th>Producto</th><th>Categoría</th><th>Stock actual</th><th>Stock mínimo</th><th>Unidad</th><th>Estado</th></tr></thead>`;
+  const tbody = productos.map(p=>{
+    const bajo = Number(p.stock_actual) <= Number(p.stock_minimo);
+    const estado = bajo
+      ? `<span style="color:var(--red);font-weight:600">Bajo</span>`
+      : `<span style="color:var(--green)">OK</span>`;
+    const catColor = catColors[p.categoria] ?? "var(--text2)";
+    return `<tr>
+      <td style="font-weight:600">${esc(p.nombre)}</td>
+      <td><span style="color:${catColor}">${esc(p.categoria)}</span></td>
+      <td style="font-size:16px;font-weight:700;color:${bajo?"var(--red)":"var(--text)"}">${p.stock_actual}</td>
+      <td>${p.stock_minimo}</td>
+      <td>${esc(p.unidad)}</td>
+      <td>${estado}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("prod-tabla").innerHTML = productos.length
+    ? `<table>${thead}<tbody>${tbody}</tbody></table>`
+    : emptyState("Sin productos. Ejecutá la migración 003_productos.sql en Supabase.");
+
+  // Mapa id→nombre para movimientos
+  const nomProd = Object.fromEntries(productos.map(p=>[p.id, p.nombre]));
+
+  // Últimos movimientos
+  const mvHead = `<thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Motivo</th></tr></thead>`;
+  const mvBody = movimientos.map(m=>{
+    const esEntrada = m.tipo === "entrada";
+    const color = esEntrada ? "var(--green)" : "var(--red)";
+    const signo = esEntrada ? "+" : "−";
+    return `<tr>
+      <td>${fmtDT(m.created_at)}</td>
+      <td>${esc(nomProd[m.producto_id]??m.producto_id)}</td>
+      <td><span style="color:${color}">${esc(m.tipo)}</span></td>
+      <td style="color:${color};font-weight:600">${signo}${m.cantidad}</td>
+      <td>${esc(m.motivo??"—")}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("prod-movimientos").innerHTML = movimientos.length
+    ? `<table>${mvHead}<tbody>${mvBody}</tbody></table>`
+    : emptyState("Sin movimientos registrados");
+}
+
+// ============================================================
+// CHART: barras horizontales (actividades)
+// ============================================================
+function barChart(cnt, maxW=380){
+  const data=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
+  if(!data.length) return emptyState("Sin datos");
+  const COLORS=["#3fb950","#58a6ff","#e3b341","#bc8cff","#f85149","#79c0ff","#56d364","#f0883e","#a5d6ff","#ff7b72","#26a641","#e3b341"];
+  const BAR_H=22, GAP=5, LW=150, CW=30, PAD=8;
+  const maxV=data[0][1];
+  const H=PAD*2+data.length*(BAR_H+GAP);
+  const W=LW+maxW+CW+PAD;
+  const bars=data.map(([act,n],i)=>{
+    const y=PAD+i*(BAR_H+GAP);
+    const bw=Math.max(3,Math.round(n/maxV*maxW));
+    const col=COLORS[i%COLORS.length];
+    return `<text x="${LW-6}" y="${y+BAR_H/2+4}" text-anchor="end" fill="var(--text2)" font-size="11" font-family="system-ui">${act.replace(/_/g," ")}</text>
+      <rect x="${LW}" y="${y}" width="${bw}" height="${BAR_H}" fill="${col}" opacity=".8" rx="2"/>
+      <text x="${LW+bw+5}" y="${y+BAR_H/2+4}" fill="var(--text2)" font-size="11" font-family="system-ui">${n}</text>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">${bars}</svg>`;
+}
+
+// ============================================================
+// CHART: barras por día
+// ============================================================
+function barChartDays(byDay, unit, color, maxH=80){
+  const dias=Object.keys(byDay).sort().slice(-30);
+  if(!dias.length) return emptyState("Sin datos");
+  const maxV=Math.max(...dias.map(d=>byDay[d]),1);
+  const BW=18, GAP=3, PAD=8, LH=14;
+  const W=PAD*2+dias.length*(BW+GAP);
+  const H=maxH+PAD*2+LH;
+  const bars=dias.map((d,i)=>{
+    const x=PAD+i*(BW+GAP);
+    const bh=Math.max(2,Math.round(byDay[d]/maxV*maxH));
+    const y=PAD+maxH-bh;
+    const label=d.slice(5);
+    return `<rect x="${x}" y="${y}" width="${BW}" height="${bh}" fill="${color}" opacity=".8" rx="2"/>
+      <text x="${x+BW/2}" y="${PAD+maxH+LH-2}" text-anchor="middle" fill="var(--text3)" font-size="8" font-family="system-ui">${label}</text>
+      <title>${d}: ${byDay[d]}${unit}</title>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">${bars}</svg>`;
+}
+
+// ============================================================
+// CHART: línea por día
+// ============================================================
+function lineChart(byDay, label, days=30, color="var(--green)"){
+  const all=[]; const hoy=new Date();
+  for(let i=days-1;i>=0;i--){ const d=new Date(hoy); d.setDate(d.getDate()-i); all.push(d.toISOString().slice(0,10)); }
+  const vals=all.map(d=>byDay[d]??0);
+  const maxV=Math.max(...vals,1);
+  const W=520, H=100, PAD=16;
+  const pts=vals.map((v,i)=>{
+    const x=PAD+i/(vals.length-1)*(W-PAD*2);
+    const y=PAD+(1-v/maxV)*(H-PAD*2);
+    return `${x},${y}`;
+  }).join(" ");
+  const area=`${PAD},${H-PAD} `+pts+` ${W-PAD},${H-PAD}`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="${area}" fill="${color}" opacity=".1"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+// ============================================================
+// CHART: temperatura + lluvia combinado
+// ============================================================
+function tempAndRainChart(dias, maxArr, minArr, byDay){
+  const vals=[...maxArr,...minArr].filter(v=>v!=null).map(Number);
+  const rainVals=Object.values(byDay).filter(v=>v);
+  if(!vals.length&&!rainVals.length) return emptyState("Sin datos de clima");
+
+  const tempMin=Math.min(...vals,-10), tempMax=Math.max(...vals,30);
+  const rainMax=Math.max(...rainVals,1);
+  const PAD=50, W=1000, H=280;
+  const gW=W-2*PAD, gH=H-2*PAD;
+
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Cuadrícula horizontal con escala de temperatura
+  for(let i=0;i<=4;i++){
+    const y=(PAD+i*(gH/4)).toFixed(1);
+    s+=`<line x1="${PAD}" y1="${y}" x2="${(W-PAD).toFixed(1)}" y2="${y}" stroke="var(--border)" stroke-width="0.5" opacity="0.5"/>`;
+    const tempVal=(tempMax-(tempMax-tempMin)*(i/4)).toFixed(0);
+    s+=`<text x="5" y="${(+y+5).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--text2)">${tempVal}°</text>`;
+    // Escala lluvia (derecha)
+    const rainVal=((rainMax)*(i/4)).toFixed(0);
+    s+=`<text x="${(W-10).toFixed(1)}" y="${(+y+5).toFixed(1)}" text-anchor="start" font-size="9" fill="var(--text2)">${rainVal}mm</text>`;
+  }
+
+  // Barras lluvia (fondo)
+  dias.forEach((day,i)=>{
+    const x=PAD+(i/(dias.length-1||1))*gW;
+    const rain=byDay[day]||0;
+    const y=H-PAD-(rain/rainMax)*gH*0.7;
+    const bw=Math.max(2,gW/(dias.length*3));
+    s+=`<rect x="${(x-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${(H-PAD-y).toFixed(1)}" fill="rgba(88,166,255,.25)" rx="1"/>`;
+  });
+
+  // Línea máx (rojo)
+  let pathMax=`M${(PAD+(0/(dias.length-1||1))*gW).toFixed(1)} ${(H-PAD-((maxArr[0]??tempMin-tempMin)/(tempMax-tempMin))*gH).toFixed(1)}`;
+  maxArr.forEach((v,i)=>{ const x=PAD+(i/(dias.length-1||1))*gW; const y=H-PAD-((v??tempMin-tempMin)/(tempMax-tempMin))*gH; pathMax+=`L${x.toFixed(1)} ${y.toFixed(1)}`; });
+  s+=`<path d="${pathMax}" stroke="var(--red)" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+
+  // Línea mín (azul)
+  let pathMin=`M${(PAD+(0/(dias.length-1||1))*gW).toFixed(1)} ${(H-PAD-((minArr[0]??tempMin-tempMin)/(tempMax-tempMin))*gH).toFixed(1)}`;
+  minArr.forEach((v,i)=>{ const x=PAD+(i/(dias.length-1||1))*gW; const y=H-PAD-((v??tempMin-tempMin)/(tempMax-tempMin))*gH; pathMin+=`L${x.toFixed(1)} ${y.toFixed(1)}`; });
+  s+=`<path d="${pathMin}" stroke="var(--blue)" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+
+  // Marco
+  s+=`<line x1="${PAD}" y1="${PAD}" x2="${PAD}" y2="${(H-PAD).toFixed(1)}" stroke="var(--border)" stroke-width="1.5"/>`;
+  s+=`<line x1="${PAD}" y1="${(H-PAD).toFixed(1)}" x2="${(W-PAD).toFixed(1)}" y2="${(H-PAD).toFixed(1)}" stroke="var(--border)" stroke-width="1.5"/>`;
+
+  // Eje X (fechas cada 5 días)
+  const step=Math.ceil(dias.length/6);
+  for(let i=0;i<dias.length;i+=step){
+    const x=PAD+(i/(dias.length-1||1))*gW;
+    s+=`<text x="${x.toFixed(1)}" y="${(H-PAD+18).toFixed(1)}" text-anchor="middle" font-size="10" fill="var(--text3)">${dias[i]}</text>`;
+  }
+
+  // Leyenda
+  s+=`<circle cx="80" cy="20" r="4" fill="var(--red)"/><text x="92" y="25" font-size="12" fill="var(--text3)">Máx</text>`;
+  s+=`<circle cx="160" cy="20" r="4" fill="var(--blue)"/><text x="172" y="25" font-size="12" fill="var(--text3)">Mín</text>`;
+  s+=`<rect x="260" y="12" width="14" height="14" fill="rgba(88,166,255,.25)"/><text x="280" y="25" font-size="12" fill="var(--text3)">Lluvia</text>`;
+
+  s+=`</svg>`;
+  return s;
+}
+
+// ============================================================
+// CHART: doble línea temperatura
+// ============================================================
+function dualLineChart(dias, maxArr, minArr){
+  const vals=[...maxArr,...minArr].filter(v=>v!=null).map(Number);
+  if(!vals.length) return emptyState("Sin datos de temperatura");
+  const minV=Math.min(...vals)-2, maxV=Math.max(...vals)+2;
+  const W=520, H=120, PAD=24;
+  const toXY=(arr)=>arr.map((v,i)=>{
+    const x=PAD+i/(arr.length-1||1)*(W-PAD*2);
+    const y=v!=null?PAD+(1-(Number(v)-minV)/(maxV-minV))*(H-PAD*2):null;
+    return y!=null?`${x.toFixed(1)},${y.toFixed(1)}`:null;
+  }).filter(Boolean).join(" ");
+  const ptMax=toXY(maxArr), ptMin=toXY(minArr);
+  const labels=dias.filter((_,i)=>i%(Math.ceil(dias.length/6))===0).map((d,_,arr)=>{
+    const i=dias.indexOf(d);
+    const x=PAD+i/(dias.length-1||1)*(W-PAD*2);
+    return `<text x="${x}" y="${H-4}" text-anchor="middle" fill="var(--text3)" font-size="8" font-family="system-ui">${d.slice(5)}</text>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" xmlns="http://www.w3.org/2000/svg">
+    <polyline points="${ptMax}" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linejoin="round"/>
+    <polyline points="${ptMin}" fill="none" stroke="var(--blue)" stroke-width="1.5" stroke-linejoin="round"/>
+    ${labels}
+    <text x="4" y="12" fill="var(--red)" font-size="9" font-family="system-ui">Máx</text>
+    <text x="4" y="22" fill="var(--blue)" font-size="9" font-family="system-ui">Mín</text>
+    <text x="${W-4}" y="12" text-anchor="end" fill="var(--text3)" font-size="8" font-family="system-ui">${maxV.toFixed(0)}°</text>
+    <text x="${W-4}" y="${H-PAD}" text-anchor="end" fill="var(--text3)" font-size="8" font-family="system-ui">${minV.toFixed(0)}°</text>
+  </svg>`;
+}
+
+// ============================================================
+// CHART: climograma (temp + lluvia, 60 días)
+// ============================================================
+function climograma(rows) {
+  // Procesar por día
+  const byDay = {};
+  rows.forEach(r => {
+    const day = r.created_at?.slice(0,10);
+    const c   = r.campos ?? {};
+    if (!day) return;
+    if (!byDay[day]) byDay[day] = { maxT:[], minT:[], lluvia:0 };
+    if (c.temp_maxima != null) byDay[day].maxT.push(+c.temp_maxima);
+    if (c.temp_minima != null) byDay[day].minT.push(+c.temp_minima);
+    if (c.mm_lluvia   != null) byDay[day].lluvia += +c.mm_lluvia;
+  });
+
+  // Generar los 60 días
+  const days = [];
+  const hoy  = new Date();
+  for (let i = 59; i >= 0; i--) {
+    const d = new Date(hoy); d.setDate(d.getDate()-i);
+    days.push(d.toISOString().slice(0,10));
+  }
+
+  const W=760, H=300, PL=38, PR=42, PT=24, PB=36;
+  const iW = W-PL-PR, iH = H-PT-PB;
+
+  // Escala temperatura
+  const allT = days.flatMap(d => byDay[d] ? [...byDay[d].maxT,...byDay[d].minT] : []);
+  const tMin = allT.length ? Math.floor(Math.min(...allT)-2) : 0;
+  const tMax = allT.length ? Math.ceil(Math.max(...allT)+2)  : 40;
+
+  // Escala lluvia (eje derecho)
+  const allR   = days.map(d => byDay[d]?.lluvia ?? 0);
+  const rMax   = Math.max(Math.max(...allR), 10);
+
+  const toX    = i  => PL + (i / (days.length-1)) * iW;
+  const toYt   = t  => PT + (1-(t-tMin)/(tMax-tMin)) * iH;
+  const toYr   = r  => PT + (1-r/rMax) * iH;
+
+  const bW = Math.max(2, iW/days.length - 1);
+  let s = "";
+
+  // Grid lines temp
+  const step = (tMax-tMin) > 30 ? 10 : 5;
+  for (let t = Math.ceil(tMin/step)*step; t <= tMax; t += step) {
+    const y = toYt(t).toFixed(1);
+    s += `<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#21262d" stroke-width="0.5"/>`;
+    s += `<text x="${PL-4}" y="${(+y+3).toFixed(1)}" text-anchor="end" fill="#484f58" font-size="9" font-family="system-ui">${t}°</text>`;
+  }
+
+  // Barras de lluvia
+  days.forEach((d,i) => {
+    const r = byDay[d]?.lluvia ?? 0;
+    if (!r) return;
+    const x  = toX(i) - bW/2;
+    const y  = toYr(r);
+    const bh = PT+iH-y;
+    s += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bW.toFixed(1)}" height="${bh.toFixed(1)}" fill="#58a6ff" opacity="0.45" rx="1"/>`;
+  });
+
+  // Área sombreada entre max y min
+  const maxPts = days.map((d,i) => {
+    const day = byDay[d]; if(!day?.maxT.length) return null;
+    return [toX(i), toYt(day.maxT.reduce((a,b)=>a+b,0)/day.maxT.length)];
+  });
+  const minPts = days.map((d,i) => {
+    const day = byDay[d]; if(!day?.minT.length) return null;
+    return [toX(i), toYt(day.minT.reduce((a,b)=>a+b,0)/day.minT.length)];
+  });
+
+  const validMax = maxPts.filter(Boolean);
+  const validMin = minPts.filter(Boolean);
+  if (validMax.length > 1 && validMin.length > 1) {
+    const fwd = validMax.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+    const bwd = [...validMin].reverse().map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+    s += `<polygon points="${fwd} ${bwd}" fill="rgba(63,185,80,0.07)"/>`;
+  }
+
+  // Líneas temperatura
+  const maxLine = validMax.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const minLine = validMin.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  if (maxLine) s += `<polyline points="${maxLine}" fill="none" stroke="#f85149" stroke-width="1.5" stroke-linejoin="round"/>`;
+  if (minLine) s += `<polyline points="${minLine}" fill="none" stroke="#58a6ff" stroke-width="1.5" stroke-linejoin="round"/>`;
+
+  // Etiquetas eje X (cada 7 días + último)
+  days.forEach((d,i) => {
+    if (i%7!==0 && i!==days.length-1) return;
+    s += `<text x="${toX(i).toFixed(1)}" y="${H-PB+12}" text-anchor="middle" fill="#484f58" font-size="8" font-family="system-ui">${d.slice(5)}</text>`;
+  });
+
+  // Eje derecho lluvia
+  [0, rMax/2, rMax].forEach(r => {
+    const y = toYr(r).toFixed(1);
+    s += `<text x="${W-PR+4}" y="${(+y+3).toFixed(1)}" fill="#3d7abf" font-size="8" font-family="system-ui">${r.toFixed(0)}mm</text>`;
+  });
+
+  // Leyenda
+  s += `<rect x="${PL}" y="8" width="14" height="3" fill="#f85149"/>
+    <text x="${PL+17}" y="14" fill="#f85149" font-size="9" font-family="system-ui">Temp máx</text>
+    <rect x="${PL+80}" y="8" width="14" height="3" fill="#58a6ff"/>
+    <text x="${PL+97}" y="14" fill="#58a6ff" font-size="9" font-family="system-ui">Temp mín</text>
+    <rect x="${PL+170}" y="6" width="10" height="8" fill="#58a6ff" opacity="0.45" rx="1"/>
+    <text x="${PL+183}" y="14" fill="#8b949e" font-size="9" font-family="system-ui">Lluvia (mm, eje der.)</text>`;
+
+  if (!allT.length && !allR.some(v=>v>0)) return emptyState("Sin datos climáticos en los últimos 60 días");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">${s}</svg>`;
+}
+
+// ============================================================
+// CHART: barras apiladas por semana (días laborales vs lluvia)
+// ============================================================
+function stackedWeekChart(workedSet, rainySet, year, month) {
+  // Generar días del mes
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const days = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = `${year}-${String(month).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    days.push(iso);
+  }
+
+  // Agrupar por semana (lunes-domingo)
+  const weeks = [];
+  let week = [];
+  days.forEach((d,i) => {
+    week.push(d);
+    const dow = new Date(d).getDay(); // 0=dom
+    if (dow === 0 || i === days.length-1) { weeks.push(week); week = []; }
+  });
+  if (week.length) weeks.push(week);
+
+  const BW=40, GAP=8, PAD=16, LH=16;
+  const maxH = 7;
+  const H = 80;
+  const W = PAD*2 + weeks.length*(BW+GAP);
+
+  let s = "";
+  weeks.forEach((wk, wi) => {
+    const x = PAD + wi*(BW+GAP);
+    let y = PAD;
+    const worked  = wk.filter(d => workedSet.has(d)).length;
+    const rainy   = wk.filter(d => !workedSet.has(d) && rainySet.has(d)).length;
+    const nodata  = wk.length - worked - rainy;
+    const scale   = (H-PAD*2-LH) / maxH;
+
+    // Sin dato (gris) — de abajo
+    const yBase = PAD + (H-PAD*2-LH);
+    let yOff = yBase;
+    if (nodata>0) {
+      const bh = nodata*scale;
+      yOff -= bh;
+      s += `<rect x="${x}" y="${yOff.toFixed(1)}" width="${BW}" height="${bh.toFixed(1)}" fill="#30363d" rx="2"/>`;
+    }
+    if (rainy>0) {
+      const bh = rainy*scale;
+      yOff -= bh;
+      s += `<rect x="${x}" y="${yOff.toFixed(1)}" width="${BW}" height="${bh.toFixed(1)}" fill="#1d4470" rx="2"/>`;
+    }
+    if (worked>0) {
+      const bh = worked*scale;
+      yOff -= bh;
+      s += `<rect x="${x}" y="${yOff.toFixed(1)}" width="${BW}" height="${bh.toFixed(1)}" fill="#1a4d1a" rx="2"/>`;
+    }
+    // Etiqueta semana
+    const label = wk[0].slice(5);
+    s += `<text x="${(x+BW/2).toFixed(1)}" y="${H-LH+10}" text-anchor="middle" fill="#484f58" font-size="8" font-family="system-ui">${label}</text>`;
+    // Conteo
+    s += `<text x="${(x+BW/2).toFixed(1)}" y="${(yOff-2).toFixed(1)}" text-anchor="middle" fill="#8b949e" font-size="7" font-family="system-ui">${worked}t·${rainy}l·${nodata}s</text>`;
+  });
+
+  // Leyenda
+  s += `<rect x="${PAD}" y="${H-8}" width="8" height="6" fill="#1a4d1a" rx="1"/>
+    <text x="${PAD+11}" y="${H-3}" fill="#8b949e" font-size="8" font-family="system-ui">Trabajado</text>
+    <rect x="${PAD+75}" y="${H-8}" width="8" height="6" fill="#1d4470" rx="1"/>
+    <text x="${PAD+86}" y="${H-3}" fill="#8b949e" font-size="8" font-family="system-ui">Lluvia</text>
+    <rect x="${PAD+130}" y="${H-8}" width="8" height="6" fill="#30363d" rx="1"/>
+    <text x="${PAD+141}" y="${H-3}" fill="#8b949e" font-size="8" font-family="system-ui">Sin dato</text>`;
+
+  return `<svg viewBox="0 0 ${W} ${H}" width="${Math.min(W,500)}" height="${H}" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
+}
+
+// ============================================================
+// Empty state
+// ============================================================
+function emptyState(msg){
+  return `<div class="empty">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <p>${esc(msg)}</p>
+  </div>`;
+}
+
+// ============================================================
+// Init
+// ============================================================
+document.getElementById("hoy").textContent = new Date().toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+loaded["resumen"]=true;
+loadTab("resumen");
+</script>
+</body>
+</html>
