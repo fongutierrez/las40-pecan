@@ -1440,14 +1440,20 @@ async function loadProductos(){
     sb("stock_alertas",{select:"producto_nombre,stock_actual,stock_minimo,created_at",resuelta:"eq.false",order:"created_at.desc"}).catch(()=>[]),
   ]);
 
-  // Alertas de stock bajo
+  // Alertas de stock bajo — solo mostrar las que SIGUEN vigentes según el stock actual real.
+  // (una alerta vieja se ignora si el producto ya tiene stock por encima del mínimo)
+  const stockVivo = Object.fromEntries(productos.map(p=>[p.nombre, Number(p.stock_actual)]));
+  const alertasVigentes = alertas.filter(a=>{
+    const actual = stockVivo[a.producto_nombre] ?? Number(a.stock_actual);
+    return actual <= Number(a.stock_minimo);
+  });
   const alertaWrap = document.getElementById("prod-alertas-wrap");
-  if(alertas.length){
+  if(alertasVigentes.length){
     alertaWrap.style.display = "";
-    document.getElementById("prod-alertas-list").innerHTML = alertas.map(a=>
+    document.getElementById("prod-alertas-list").innerHTML = alertasVigentes.map(a=>
       `<div class="alert-item">
         <div class="alert-tipo" style="color:var(--red)">${esc(a.producto_nombre)}</div>
-        <div class="alert-id">Stock: <b>${a.stock_actual}</b> / Mín: ${a.stock_minimo}</div>
+        <div class="alert-id">Stock: <b>${stockVivo[a.producto_nombre] ?? a.stock_actual}</b> / Mín: ${a.stock_minimo}</div>
         <div class="alert-time">${ago(a.created_at)}</div>
       </div>`
     ).join("");
